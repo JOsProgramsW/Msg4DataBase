@@ -1,0 +1,150 @@
+<!-- archivo unico para todo el sistema-->
+ <!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MGS4 Database Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="./assets/css/global.css">
+    <link rel="stylesheet" href="./assets/css/componentes.css">
+</head>
+<body>
+
+    <section id="vista-inicio" class="pantalla-sistema activa">
+        <div class="marco-digital"></div>
+        
+        <div class="contenedor-pantalla-completa">
+            <div class="bloque-branding-inicio">
+                <img src="./assets/img/logo.png" alt="Metal Gear Solid 4 Guns of the Patriots" class="logo-mgs4-imagen">
+            </div>
+            
+            <div class="bloque-interaccion-inicio">
+                <button id="btn-start" class="btn-start-tactico">PRESS ENTER BUTTON</button>
+                <p class="copyright-konami">©1987 2026 konami Digital Entertainment Co., Ltd.</p>
+            </div>
+        </div>
+
+        <div class="barra-controles-mgs">
+            <div><span class="control-btn">L1</span> SYSTEM</div>
+            <div>SELECT : HELP</div>
+            <div>START <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+
+    <section id="vista-login" class="pantalla-sistema oculta">
+        <div class="marco-digital"></div>
+
+        <div class="contenedor-pantalla-completa login-centrado">
+            <div class="tarjeta-militar">
+                <div class="tarjeta-header">
+                    <h3><i class="fa-solid fa-satellite-dish"></i> SOP SYSTEM LOGIN</h3>
+                    <p>AUTENTICACION DE USUARIO</p>
+                </div>
+                
+                <form id="form-login">
+                    <div class="grupo-input">  
+                        <label for="usuario"><i class="fa-solid fa-user"></i></label>
+                        <input type="text" id="usuario" placeholder="ID DE USUARIO" required autocomplete="off">
+                    </div>
+                    
+                    <div class="grupo-input">
+                        <label for="password"><i class="fa-solid fa-lock"></i></label>
+                        <input type="password" id="password" placeholder="CODIGO DE ACCESO" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit-mgs">INGRESAR</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="barra-controles-mgs">
+            <div><span class="control-btn">L1</span> BACK</div>
+            <div>SELECT : HELP</div>
+            <div>CONFIRM <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+
+    <section id="vista-menu" class="pantalla-sistema oculta">
+        <div class="marco-digital"></div>
+        <div class="marca-agua-bg">DATABASE / MENU</div>
+
+        <div class="contenedor-pantalla-completa split-menu">
+            <div class="area-logo-mgs4">
+                <div class="placeholder-logo-serpiente">SOP SYSTEM</div>
+            </div>
+
+            <div class="area-opciones-menu">
+                <ul class="lista-opciones-mgs">
+                    <li class="opcion-item" id="btn-ir-enciclopedia">
+                        <i class="fa-solid fa-book-open icono-menu"></i>
+                        <span class="opcion-texto">Encyclopedia</span>
+                    </li>
+                    <li class="opcion-item" id="btn-ir-timeline">
+                        <i class="fa-solid fa-timeline icono-menu"></i>
+                        <span class="opcion-texto">Timeline</span>
+                    </li>
+                    <li class="opcion-item" id="btn-ir-relaciones">
+                        <i class="fa-solid fa-diagram-project icono-menu"></i>
+                        <span class="opcion-texto">Relationship Chart</span>
+                    </li>
+                    <li class="opcion-item">
+                        <i class="fa-solid fa-clock-rotate-left icono-menu"></i>
+                        <span class="opcion-texto">History</span>
+                    </li>
+                    <li class="opcion-item">
+                        <i class="fa-solid fa-star icono-menu"></i>
+                        <span class="opcion-texto">Favorites</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="barra-controles-mgs">
+            <div><span class="control-btn">L1</span> PREV</div>
+            <div>SELECT : HELP</div>
+            <div>NEXT <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+
+    <script src="./assets/js/main.js"></script>
+    <section id="vista-enciclopedia" class="pantalla-sistema oculta">
+        <div class="marco-digital"></div>
+        <div class="marca-agua-bg">DATABASE / ENCYCLOPEDIA</div>
+
+        <div class="contenedor-pantalla-completa split-enciclopedia">
+            
+            <div class="panel-lista-terminos">
+                <ul class="lista-mgs-items" id="lista-articulos">
+                    <li class="articulo-item activo-mgs" data-id="solid-snake">Solid Snake</li>
+                    <li class="articulo-item" data-id="liquid-ocelot">Liquid Ocelot</li>
+                    <li class="articulo-item" data-id="sop-system">SOP System</li>
+                    <li class="articulo-item" data-id="metal-gear-rex">Metal Gear REX</li>
+                </ul>
+            </div>
+
+            <div class="panel-visor-contenido" id="visor-contenido">
+                <h2 class="visor-titulo" id="articulo-titulo">SOLID SNAKE</h2>
+                <div class="visor-linea-separadora"></div>
+                
+                <div class="visor-cuerpo">
+                    <div class="visor-media">
+                        <img src="./assets/img/placeholder-art.png" alt="Contenido" id="articulo-imagen" class="imagen-tactica">
+                    </div>
+                    <p class="visor-texto" id="articulo-descripcion">
+                        El legendario héroe que salvó al mundo en múltiples ocasiones. En 2014, sufre de un envejecimiento celular acelerado debido a su naturaleza de clon, siendo conocido ahora como Old Snake.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="barra-controles-mgs">
+            <div><span class="control-btn">L1</span> MENU PRINCIPAL</div>
+            <div>SELECT : HELP</div>
+            <div>SELECCIONAR <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,304 @@
+/* estilos especificos de cada pantalla como lo es el login, menul, etc */ 
+ .contenedor-pantalla-completa {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 5;
+}
+
+/* --------------------------------------------------------------------------
+   PANTALLA DE INICIO (CORREGIDA: SNAKE A LA IZQUIERDA Y TEXTOS LIBRES)
+   -------------------------------------------------------------------------- */
+#vista-inicio .contenedor-pantalla-completa {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;         /* Empuja el logo y el botón al extremo derecho */
+    padding: 14vh 7vw 16vh 0;      /* Espaciado perfecto para no pisar los marcos azules */
+    
+    /* CONTROL DE ALTA FIDELIDAD PARA LA ILUSTRACIÓN */
+    background-image: url('../img/old\ snake.png');
+    background-size: contain;      /* Mantiene la proporción exacta de Snake sin agrandarlo de más */
+    background-position: left center; /* Pega a Old Snake estrictamente en el lado izquierdo */
+    background-repeat: no-repeat;  /* Evita que la imagen se duplique */
+}
+
+.bloque-branding-inicio {
+    width: 520px;                  /* Ancho ideal para que tu imagen de título luzca imponente */
+    margin-right: 2vw;             /* Ligera separación del borde derecho */
+}
+
+.logo-mgs4-imagen {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.bloque-interaccion-inicio {
+    text-align: center;
+    width: 520px;                  /* Centra el botón exactamente debajo de la imagen del título */
+    margin-right: 2vw;
+}
+
+/* BOTÓN INTERACTIVO ROJO CON PARPADEO SEMÁNTICO */
+.btn-start-tactico {
+    background: transparent;
+    border: 2px solid #000000;
+    padding: 10px 45px;
+    font-size: 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: bold;
+    color: #9E1B1B;                /* El rojo exacto de tu boceto original */
+    cursor: pointer;
+    letter-spacing: 3px;
+    margin-bottom: 2vh;
+    display: inline-block;
+    text-transform: uppercase;
+    
+    /* Animación infinita de pulsación de luz */
+    animation: parpadeoMGS 1.4s infinite ease-in-out;
+}
+
+@keyframes parpadeoMGS {
+    0%, 100% { 
+        opacity: 1; 
+    }
+    50% { 
+        opacity: 0.15;             /* Atenuación suave táctica */
+    }
+}
+
+.copyright-konami {
+    font-size: 0.85rem;
+    color: #4A4D46;
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* --------------------------------------------------------------------------
+   PANTALLA DE LOGIN (TARJETA MILITAR CENTRAL)
+   -------------------------------------------------------------------------- */
+.login-centrado {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 5vh;
+}
+
+.tarjeta-militar {
+    background-color: #C7C9BC;
+    border: 2px solid #000000;
+    width: 420px;
+    padding: 35px;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.tarjeta-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.tarjeta-header h3 {
+    font-size: 1.6rem;
+    color: #000000;
+}
+
+.tarjeta-header p {
+    font-size: 0.85rem;
+    color: #5A5E54;
+    letter-spacing: 2px;
+    margin-top: 3px;
+}
+
+.grupo-input {
+    display: flex;
+    align-items: center;
+    border: 2px solid #000000;
+    background-color: rgba(0, 0, 0, 0.02);
+    padding: 8px 12px;
+    margin-bottom: 18px;
+}
+
+.grupo-input label {
+    font-size: 1.1rem;
+    margin-right: 12px;
+}
+
+.grupo-input input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.2rem;
+}
+
+.btn-submit-mgs {
+    width: 100%;
+    background-color: #000000;
+    color: #C7C9BC;
+    border: none;
+    padding: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+}
+
+.btn-submit-mgs:hover {
+    background-color: #050505;
+}
+
+/* --------------------------------------------------------------------------
+   PANTALLA DE MENÚ PRINCIPAL
+   -------------------------------------------------------------------------- */
+.split-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 10vh;
+}
+
+.marca-agua-bg {
+    position: absolute;
+    top: 4vh;
+    left: 3vw;
+    font-size: 1.8rem;
+    color: #A3A69A;
+    font-weight: bold;
+}
+
+.placeholder-logo-serpiente {
+    font-size: 4.5rem;
+    font-weight: bold;
+    color: #3d423a;
+    letter-spacing: 12px;
+    margin-bottom: 5vh;
+}
+
+.area-opciones-menu {
+    width: 380px;
+}
+
+.lista-opciones-mgs {
+    list-style: none;
+}
+
+.opcion-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 1.5rem;
+    color: #000000;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+}
+
+.opcion-item:hover {
+    color: #3A8BFF;
+    transform: translateX(10px);
+}
+
+.icono-menu {
+    margin-right: 15px;
+    width: 25px;
+    text-align: center;
+}
+
+.split-enciclopedia {
+    display: flex;
+    justify-content: space-between;
+    padding: 12vh 4vw 10vh 4vw;
+    gap: 2vw;
+}
+
+/* Panel Izquierdo: Lista de Artículos */
+.panel-lista-terminos {
+    width: 30%;
+    height: 100%;
+    border-right: 2px solid rgba(0, 0, 0, 0.2);
+    padding-right: 1.5vw;
+    overflow-y: auto; /* Permite scroll si la lista es muy larga */
+}
+
+.lista-mgs-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.articulo-item {
+    font-size: 1.4rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s ease;
+    border-left: 4px solid transparent;
+}
+
+.articulo-item:hover {
+    color: #3A8BFF;
+    background-color: rgba(58, 139, 255, 0.05);
+    padding-left: 18px;
+}
+
+/* Estado seleccionado (Artículo activo) */
+.articulo-item.activo-mgs {
+    color: #000000;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left-color: #000000;
+    font-weight: bold;
+}
+
+/* Panel Derecho: Visor de Datos */
+.panel-visor-contenido {
+    width: 68%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.visor-titulo {
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #000000;
+}
+
+.visor-linea-separadora {
+    width: 100%;
+    height: 2px;
+    background-color: #000000;
+    margin: 1vh 0 3vh 0;
+}
+
+.visor-cuerpo {
+    display: flex;
+    gap: 2vw;
+    align-items: flex-start;
+}
+
+.visor-media {
+    width: 220px;
+    height: 280px;
+    border: 2px solid #000000;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.imagen-tactica {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.visor-texto {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: #141615;
+    text-align: justify;
+    font-family: 'Share Tech Mono', monospace;
+}
