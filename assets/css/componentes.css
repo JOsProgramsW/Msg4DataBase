@@ -7,25 +7,24 @@
 }
 
 /* --------------------------------------------------------------------------
-   PANTALLA DE INICIO (CORREGIDA: SNAKE A LA IZQUIERDA Y TEXTOS LIBRES)
+   PANTALLA DE INICIO (SNAKE A LA IZQUIERDA Y TEXTOS LIBRES)
    -------------------------------------------------------------------------- */
 #vista-inicio .contenedor-pantalla-completa {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: flex-end;         /* Empuja el logo y el botón al extremo derecho */
-    padding: 14vh 7vw 16vh 0;      /* Espaciado perfecto para no pisar los marcos azules */
+    align-items: flex-end; 
+    padding: 14vh 7vw 16vh 0;
     
-    /* CONTROL DE ALTA FIDELIDAD PARA LA ILUSTRACIÓN */
     background-image: url('../img/old\ snake.png');
-    background-size: contain;      /* Mantiene la proporción exacta de Snake sin agrandarlo de más */
-    background-position: left center; /* Pega a Old Snake estrictamente en el lado izquierdo */
-    background-repeat: no-repeat;  /* Evita que la imagen se duplique */
+    background-size: contain;
+    background-position: left center;
+    background-repeat: no-repeat;
 }
 
 .bloque-branding-inicio {
-    width: 520px;                  /* Ancho ideal para que tu imagen de título luzca imponente */
-    margin-right: 2vw;             /* Ligera separación del borde derecho */
+    width: 520px;
+    margin-right: 2vw;
 }
 
 .logo-mgs4-imagen {
@@ -36,11 +35,10 @@
 
 .bloque-interaccion-inicio {
     text-align: center;
-    width: 520px;                  /* Centra el botón exactamente debajo de la imagen del título */
+    width: 520px;
     margin-right: 2vw;
 }
 
-/* BOTÓN INTERACTIVO ROJO CON PARPADEO SEMÁNTICO */
 .btn-start-tactico {
     background: transparent;
     border: 2px solid #000000;
@@ -48,24 +46,18 @@
     font-size: 1.5rem;
     font-family: 'Share Tech Mono', monospace;
     font-weight: bold;
-    color: #9E1B1B;                /* El rojo exacto de tu boceto original */
+    color: #9E1B1B;
     cursor: pointer;
     letter-spacing: 3px;
     margin-bottom: 2vh;
     display: inline-block;
     text-transform: uppercase;
-    
-    /* Animación infinita de pulsación de luz */
     animation: parpadeoMGS 1.4s infinite ease-in-out;
 }
 
 @keyframes parpadeoMGS {
-    0%, 100% { 
-        opacity: 1; 
-    }
-    50% { 
-        opacity: 0.15;             /* Atenuación suave táctica */
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
 }
 
 .copyright-konami {
@@ -208,27 +200,16 @@
     text-align: center;
 }
 
-.split-enciclopedia {
-    display: flex;
-    justify-content: space-between;
-    padding: 12vh 4vw 10vh 4vw;
-    gap: 2vw;
-}
-
-/* Panel Izquierdo: Lista de Artículos */
-.panel-lista-terminos {
-    width: 30%;
-    height: 100%;
-    border-right: 2px solid rgba(0, 0, 0, 0.2);
-    padding-right: 1.5vw;
-    overflow-y: auto; /* Permite scroll si la lista es muy larga */
-}
-
+/* --------------------------------------------------------------------------
+   ESTILOS COMPARTIDOS LISTAS DE ARTÍCULOS
+   -------------------------------------------------------------------------- */
 .lista-mgs-items {
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 0;
+    margin: 0;
 }
 
 .articulo-item {
@@ -246,7 +227,6 @@
     padding-left: 18px;
 }
 
-/* Estado seleccionado (Artículo activo) */
 .articulo-item.activo-mgs {
     color: #000000;
     background-color: rgba(0, 0, 0, 0.05);
@@ -254,12 +234,15 @@
     font-weight: bold;
 }
 
-/* Panel Derecho: Visor de Datos */
+/* --------------------------------------------------------------------------
+   VISOR DE DATOS TÁCTICO
+   -------------------------------------------------------------------------- */
 .panel-visor-contenido {
-    width: 68%;
+    width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* CRÍTICO: Elimina la restricción que aplasta el texto flex */
 }
 
 .visor-titulo {
@@ -267,6 +250,7 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #000000;
+    margin: 0;
 }
 
 .visor-linea-separadora {
@@ -280,6 +264,7 @@
     display: flex;
     gap: 2vw;
     align-items: flex-start;
+    width: 100%;
 }
 
 .visor-media {
@@ -287,6 +272,7 @@
     height: 280px;
     border: 2px solid #000000;
     background-color: rgba(0, 0, 0, 0.03);
+    flex-shrink: 0; /* Blinda las dimensiones del contenedor de la imagen */
 }
 
 .imagen-tactica {
@@ -301,4 +287,113 @@
     color: #141615;
     text-align: justify;
     font-family: 'Share Tech Mono', monospace;
+    flex-grow: 1; /* Permite al bloque ocupar todo el ancho remanente */
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   ENCICLOPEDIA AVANZADA (CSS GRID + FLEX FLOW DE ALTA FIDELIDAD)
+   -------------------------------------------------------------------------- */
+.header-global-enciclopedia {
+    position: absolute;
+    top: 6vh;
+    left: 6vw;
+    z-index: 10;
+}
+
+.titulo-original-mgs {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2.5rem;
+    color: #9da095;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+#vista-enciclopedia .contenedor-pantalla-completa {
+    display: flex;
+    flex-direction: column;
+    padding: 14vh 4vw 14vh 4vw;
+    box-sizing: border-box;
+}
+
+.split-enciclopedia-avanzada {
+    display: grid;
+    grid-template-columns: 280px 250px 1fr;
+    gap: 20px;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* Panel de Categorías */
+.panel-categorias-mgs {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    padding-right: 10px;
+    overflow-y: auto;
+}
+
+.lista-categorias-db {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.categoria-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+    border: 1px solid transparent;
+}
+
+.categoria-item i {
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+
+.cat-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.cat-info span {
+    font-weight: bold;
+}
+
+.cat-info small {
+    font-size: 0.75rem;
+    color: #6c7065;
+    font-family: monospace;
+}
+
+.categoria-item:hover, .categoria-item.activa-cat {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #000;
+}
+
+/* Panel de Lista de Artículos Filtrados */
+.panel-lista-terminos-filtrados {
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    padding-right: 10px;
+    overflow-y: auto;
+}
+
+/* Barra de estado inferior */
+.barra-estado-mgs {
+    width: 100%;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 6px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    background-color: rgba(0, 0, 0, 0.02);
+    margin-top: 3vh;
+    box-sizing: border-box;
 }

@@ -108,43 +108,87 @@
         </div>
     </section>
 
-    <script src="./assets/js/main.js"></script>
     <section id="vista-enciclopedia" class="pantalla-sistema oculta">
         <div class="marco-digital"></div>
         <div class="marca-agua-bg">DATABASE / ENCYCLOPEDIA</div>
 
-        <div class="contenedor-pantalla-completa split-enciclopedia">
+        <div class="header-global-enciclopedia">
+            <h1 class="titulo-original-mgs">Encyclopedia</h1>
+        </div>
+
+        <div class="contenedor-pantalla-completa">
             
-            <div class="panel-lista-terminos">
-                <ul class="lista-mgs-items" id="lista-articulos">
-                    <li class="articulo-item activo-mgs" data-id="solid-snake">Solid Snake</li>
-                    <li class="articulo-item" data-id="liquid-ocelot">Liquid Ocelot</li>
-                    <li class="articulo-item" data-id="sop-system">SOP System</li>
-                    <li class="articulo-item" data-id="metal-gear-rex">Metal Gear REX</li>
-                </ul>
+            <div class="split-enciclopedia-avanzada">
+                <div class="panel-categorias-mgs">
+                    <ul class="lista-categorias-db">
+                        <li class="categoria-item activa-cat" data-categoria="all">
+                            <i class="fa-solid fa-folder"></i> 
+                            <div class="cat-info"><span>All</span><small>8/8</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="people">
+                            <i class="fa-solid fa-user"></i> 
+                            <div class="cat-info"><span>People</span><small>2/2</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="organizations">
+                            <i class="fa-solid fa-users"></i> 
+                            <div class="cat-info"><span>Organizations</span><small>1/1</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="science">
+                            <i class="fa-solid fa-flask"></i> 
+                            <div class="cat-info"><span>Science</span><small>1/1</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="military">
+                            <i class="fa-solid fa-gun"></i> 
+                            <div class="cat-info"><span>Military</span><small>2/2</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="events">
+                            <i class="fa-solid fa-calendar-days"></i> 
+                            <div class="cat-info"><span>Historic Events</span><small>1/1</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="locations">
+                            <i class="fa-solid fa-earth-americas"></i> 
+                            <div class="cat-info"><span>Locations</span><small>1/1</small></div>
+                        </li>
+                        <li class="categoria-item" data-categoria="other">
+                            <i class="fa-solid fa-ellipsis"></i> 
+                            <div class="cat-info"><span>Other</span><small>0/0</small></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="panel-lista-terminos-filtrados">
+                    <ul class="lista-mgs-items" id="lista-dinamica-articulos">
+                        </ul>
+                </div>
+
+                <div class="panel-visor-contenido" id="visor-contenido">
+                    <h2 class="visor-titulo" id="articulo-titulo">SELECCIONE UN ARTÍCULO</h2>
+                    <div class="visor-linea-separadora"></div>
+                    
+                    <div class="visor-cuerpo">
+                        <div class="visor-media">
+                            <img src="./assets/img/placeholder-art.png" alt="Contenido" id="articulo-imagen" class="imagen-tactica">
+                        </div>
+                        <p class="visor-texto" id="articulo-descripcion">
+                            Filtre por categoría en el menú izquierdo y seleccione un registro para desplegar los detalles del archivo SOP.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div class="panel-visor-contenido" id="visor-contenido">
-                <h2 class="visor-titulo" id="articulo-titulo">SOLID SNAKE</h2>
-                <div class="visor-linea-separadora"></div>
-                
-                <div class="visor-cuerpo">
-                    <div class="visor-media">
-                        <img src="./assets/img/placeholder-art.png" alt="Contenido" id="articulo-imagen" class="imagen-tactica">
-                    </div>
-                    <p class="visor-texto" id="articulo-descripcion">
-                        El legendario héroe que salvó al mundo en múltiples ocasiones. En 2014, sufre de un envejecimiento celular acelerado debido a su naturaleza de clon, siendo conocido ahora como Old Snake.
-                    </p>
-                </div>
+            <div class="barra-estado-mgs">
+                <span id="texto-estado-subpantalla">Display all entries</span>
             </div>
 
         </div>
 
         <div class="barra-controles-mgs">
-            <div><span class="control-btn">L1</span> MENU PRINCIPAL</div>
+            <div id="btn-volver-menu" style="cursor: pointer;"><span class="control-btn">L1</span> MENU PRINCIPAL</div>
             <div>SELECT : HELP</div>
             <div>SELECCIONAR <span class="control-btn">R1</span></div>
         </div>
     </section>
+
+    <script src="./assets/js/main.js"></script>
 </body>
 </html>
