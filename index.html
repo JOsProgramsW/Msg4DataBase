@@ -85,7 +85,7 @@
                         <i class="fa-solid fa-timeline icono-menu"></i>
                         <span class="opcion-texto">Timeline</span>
                     </li>
-                    <li class="opcion-item" id="btn-ir-relaciones">
+                    <li class="opcion-item" id="btn-ir-relations">
                         <i class="fa-solid fa-diagram-project icono-menu"></i>
                         <span class="opcion-texto">Relationship Chart</span>
                     </li>
@@ -233,6 +233,43 @@
             <div id="btn-timeline-volver" style="cursor: pointer;"><span class="control-btn">L1</span> MENU PRINCIPAL</div>
             <div>SELECT : HELP</div>
             <div>SELECCIONAR <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+
+   <section id="vista-relations" class="pantalla-sistema oculta">
+        <div class="marco-digital"></div>
+        <div class="marca-agua-bg">SOP / RELATIONS</div>
+
+        <div class="header-global-enciclopedia">
+            <h1 class="titulo-original-mgs" id="relations-marcador-anio">SCHEMA RELAZIONI : 1922</h1>
+        </div>
+
+        <div class="contenedor-pantalla-completa el-mapa-red">
+            
+            <div class="tablero-relaciones-dinamico">
+                <div class="tablero-relaciones-grid"></div>
+            </div>
+
+            <div class="panel-visor-relaciones-inferior" id="visor-relaciones-ficha">
+                <div class="bloque-avatar-ficha">
+                    <img src="./assets/img/placeholder-art.png" id="relaciones-ficha-img" alt="Ficha Táctica">
+                </div>
+                <div class="bloque-datos-ficha">
+                    <h2 id="relaciones-ficha-titulo">SELECCIONE UN NODO</h2>
+                    <div class="linea-decorativa-ficha"></div>
+                    <p id="relaciones-ficha-texto">Haga clic sobre un agente o facción del mapa neural para extraer su registro directo del archivo SOP.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="barra-controles-mgs">
+            <div id="btn-relations-volver" style="cursor: pointer;"><span class="control-btn">L1</span> MENU PRINCIPAL</div>
+            <div class="controles-navegacion-temporal">
+                <span id="btn-relations-prev" style="cursor: pointer;" class="control-btn-flecha">&lt; ANTERIOR</span>
+                | 
+                <span id="btn-relations-next" style="cursor: pointer;" class="control-btn-flecha">SIGUIENTE &gt;</span>
+            </div>
+            <div>CONFIRM <span class="control-btn">R1</span></div>
         </div>
     </section>
 

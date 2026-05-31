@@ -518,3 +518,155 @@
     color: #9E1B1B; /* Rojo de alerta de código */
     letter-spacing: 1px;
 }
+
+#vista-relations .contenedor-pantalla-completa {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 84vh;
+    padding: 14vh 4vw 2vh 4vw;
+    box-sizing: border-box;
+}
+
+/* Contenedor principal que simula el radar de posicionamiento elíptico */
+.tablero-relaciones-dinamico {
+    position: relative;
+    width: 100%;
+    height: 58%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(199, 201, 188, 0.15);
+    border: 2px dashed #9fa496;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Lienzo físico con dimensiones controladas para el mapeo matemático de JS */
+.tablero-relaciones-grid {
+    position: relative;
+    width: 550px;
+    height: 320px;
+    display: block; /* Desactivado Grid estático para permitir absolute positioning */
+}
+
+/* Nodos calculados dinámicamente e inyectados por JS */
+.nodo-personaje-dinamico {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    z-index: 10;
+}
+
+.nodo-personaje-dinamico:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+}
+
+/* Marco circular táctico para los avatares */
+.nodo-personaje-dinamico .avatar-marco-tactico {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: 2px solid #000000;
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.15);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nodo-personaje-dinamico .avatar-marco-tactico img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Etiqueta de identificación inferior indexada al nodo */
+.nodo-identificador {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 6px;
+    background: #C7C9BC;
+    padding: 2px 8px;
+    border: 1px solid #000000;
+    border-radius: 2px;
+    white-space: nowrap;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+/* Resalte de Selección Activa (Estilo Alerta de Infiltración / SOP Sync) */
+.nodo-personaje-dinamico.activo-nodo-neural .avatar-marco-tactico {
+    border-color: #9E1B1B;
+    box-shadow: 0 0 10px rgba(158, 27, 27, 0.6);
+}
+
+.nodo-personaje-dinamico.activo-nodo-neural .nodo-identificador {
+    background: #9E1B1B;
+    color: #C7C9BC;
+    border-color: #9E1B1B;
+}
+
+/* Ficha Descriptiva Inferior Integrada (Visor de Transmisión del Códec) */
+.panel-visor-relaciones-inferior {
+    display: flex;
+    width: 100%;
+    height: 38%;
+    background-color: #C7C9BC;
+    border: 2px solid #000000;
+    padding: 15px 20px;
+    gap: 20px;
+    box-sizing: border-box;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.bloque-avatar-ficha {
+    width: 110px;
+    height: 100%;
+    border: 2px solid #000000;
+    background-color: #000000;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.bloque-avatar-ficha img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bloque-datos-ficha {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.bloque-datos-ficha h2 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.5rem;
+    margin: 0;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.linea-decorativa-ficha {
+    width: 100%;
+    height: 2px;
+    background-color: #000000;
+    margin: 6px 0;
+}
+
+.bloque-datos-ficha p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    color: #141615;
+    text-align: justify;
+    margin: 0;
+    overflow-y: auto;
+    padding-right: 5px;
+}
