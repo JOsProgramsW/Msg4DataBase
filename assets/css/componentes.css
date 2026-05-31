@@ -397,3 +397,124 @@
     margin-top: 3vh;
     box-sizing: border-box;
 }
+#vista-timeline .contenedor-pantalla-completa {
+    display: flex;
+    flex-direction: column;
+    padding: 14vh 4vw 14vh 4vw;
+    box-sizing: border-box;
+}
+
+.split-timeline-avanzado {
+    display: grid;
+    grid-template-columns: 380px 1fr; /* Columna de nodos más ancha, el resto para el visor */
+    gap: 40px;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* Panel de la Línea de Tiempo (Izquierda) */
+.panel-cronologico-mgs {
+    position: relative;
+    overflow-y: auto;
+    padding-left: 20px;
+    padding-right: 10px;
+}
+
+/* El eje físico de la línea */
+.eje-linea-vertical {
+    position: absolute;
+    top: 0;
+    left: 35px;
+    width: 2px;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.15);
+    z-index: 1;
+}
+
+.lista-nodos-tiempo {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Nodo Individual */
+.nodo-tiempo-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* El círculo indicador de la línea */
+.nodo-indicador {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #C7C9BC;
+    border: 2px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    font-family: monospace;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+/* Bloque de texto del nodo */
+.nodo-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.nodo-ano {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000;
+    line-height: 1;
+}
+
+.nodo-evento-titulo {
+    font-size: 1rem;
+    color: #5A5E54;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Efectos Hover y Activo estilo interfaz PS3 */
+.nodo-tiempo-item:hover .nodo-indicador,
+.nodo-tiempo-item.activo-nodo .nodo-indicador {
+    background-color: #000;
+    color: #C7C9BC;
+    transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.nodo-tiempo-item:hover .nodo-ano,
+.nodo-tiempo-item.activo-nodo .nodo-ano {
+    color: #3A8BFF; /* Resalte azul clásico del sistema de datos */
+}
+
+/* Contenedor del texto e info interna en el visor */
+.contenedor-informacion-tiempo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.etiqueta-periodo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #9E1B1B; /* Rojo de alerta de código */
+    letter-spacing: 1px;
+}

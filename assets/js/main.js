@@ -22,6 +22,17 @@ const elListaArticulosDinamica = document.getElementById('lista-dinamica-articul
 const elTextoEstado = document.getElementById('texto-estado-subpantalla');
 const itemsCategorias = document.querySelectorAll('.categoria-item');
 
+const vistaTimeline = document.getElementById('vista-timeline');
+const btnIrTimeline = document.getElementById('btn-ir-timeline');
+const btnTimelineVolver = document.getElementById('btn-timeline-volver');
+
+const elTimelineTitulo = document.getElementById('timeline-titulo');
+const elTimelineImagen = document.getElementById('timeline-imagen');
+const elTimelineFecha = document.getElementById('timeline-fecha');
+const elTimelineDescripcion = document.getElementById('timeline-descripcion');
+const elListaNodosCronologicos = document.getElementById('lista-nodos-cronologicos');
+const elTextoEstadoTimeline = document.getElementById('texto-estado-timeline');
+
 // ==========================================================================
 // BASE DE DATOS EXTENDIDA CON METADATOS DE CATEGORÍA
 // ==========================================================================
@@ -84,6 +95,33 @@ const baseDatosMGS4 = {
         categoria: "locations",
         imagen: "./assets/img/art-island.png",
         descripcion: "Un archipiélago fortificado y aislado situado en Alaska, utilizado originalmente como una instalación secreta de almacenamiento y desmantelamiento de armas nucleares. Nueve años después de la crisis, Old Snake regresa a este gélido complejo industrial abandonado en el Acto 4 para recuperar el Railgun de REX."
+    }
+};
+
+const baseDatosTimeline = {
+    "1964": {
+        titulo: "Snake Eater Incident",
+        fecha: "AÑO: 1964 (Guerra Fría)",
+        imagen: "./assets/img/time-64.png",
+        descripcion: "Durante la crisis de los misiles, Naked Snake es desplegado en las selvas de Tselinoyarsk con la misión de rescatar al científico Nikolai Sokolov y eliminar a su mentora, The Boss, quien desertó a la Unión Soviética. Tras completar la misión con éxito, recibe el título de Big Boss, sembrando el origen ideológico de todo el conflicto del siglo XXI."
+    },
+    "1970": {
+        titulo: "San Hieronymo Takeover",
+        fecha: "AÑO: 1970 (Península de San Hieronymo)",
+        imagen: "./assets/img/time-70.png",
+        descripcion: "La unidad FOX renegada toma control de un silo de misiles soviéticos en Colombia. Big Boss, capturado en la base, une fuerzas con Roy Campbell para organizar una resistencia. Este incidente marca la disolución formal de FOX y sienta los cimientos financieros para la creación de la red Cipher junto al Mayor Zero."
+    },
+    "2005": {
+        titulo: "Shadow Moses Incident",
+        fecha: "AÑO: 2005 (Crisis Nuclear en Alaska)",
+        imagen: "./assets/img/art-shadow-moses.png",
+        descripcion: "La unidad de fuerzas especiales FOXHOUND de nueva generación, liderada por Liquid Snake, se apodera de la isla de Shadow Moses y del prototipo Metal Gear REX. Exigen la entrega de las células genéticas de Big Boss. Solid Snake es sacado del retiro para infiltrarse y neutralizar la amenaza terrorista."
+    },
+    "2014": {
+        titulo: "Guns of the Patriots Crisis",
+        fecha: "AÑO: 2014 (Economía de Guerra Mundial)",
+        imagen: "./assets/img/art-sop.png",
+        descripcion: "El sistema SOP regula por completo los campos de batalla a través de nanomáquinas. Liquid Ocelot ejecuta un alzamiento a escala global controlando las cinco PMCs más poderosas del planeta. Su objetivo final es secuestrar la red central de IAs de los Patriots. Old Snake inicia su última misión encubierta para detenerlo."
     }
 };
 
@@ -152,6 +190,56 @@ itemsCategorias.forEach(cat => {
     });
 });
 
+function cargarTimelineDinamico() {
+    if (!elListaNodosCronologicos) return;
+
+    elListaNodosCronologicos.innerHTML = "";
+
+    Object.entries(baseDatosTimeline).forEach(([ano, datos]) => {
+        const li = document.createElement('li');
+        li.className = 'nodo-tiempo-item';
+        li.setAttribute('data-ano', ano);
+
+        li.innerHTML = `
+            <div class="nodo-indicador"></div>
+            <div class="nodo-meta">
+                <span class="nodo-ano">${ano}</span>
+                <span class="nodo-evento-titulo">${datos.titulo}</span>
+            </div>
+        `;
+
+        li.addEventListener('click', () => {
+            document.querySelectorAll('.nodo-tiempo-item').forEach(n => n.classList.remove('activo-nodo'));
+            li.classList.add('activo-nodo');
+            mostrarDetalleTimeline(ano);
+        });
+
+        elListaNodosCronologicos.appendChild(li);
+    });
+
+    // Seleccionar por defecto el primer nodo (1964)
+    const primerNodo = elListaNodosCronologicos.querySelector('.nodo-tiempo-item');
+    if (primerNodo) {
+        primerNodo.classList.add('activo-nodo');
+        mostrarDetalleTimeline(primerNodo.getAttribute('data-ano'));
+    }
+}
+
+function mostrarDetalleTimeline(anoId) {
+    const datos = baseDatosTimeline[anoId];
+    if (datos && elTimelineTitulo && elTimelineImagen && elTimelineFecha && elTimelineDescripcion) {
+        elTimelineTitulo.textContent = datos.titulo;
+        elTimelineImagen.src = datos.imagen;
+        elTimelineImagen.alt = datos.titulo;
+        elTimelineFecha.textContent = datos.fecha;
+        elTimelineDescripcion.textContent = datos.descripcion;
+
+        if (elTextoEstadoTimeline) {
+            elTextoEstadoTimeline.textContent = `Displaying historical archive for the year [${anoId}].`;
+        }
+    }
+}
+
 // ==========================================================================
 // MAQUINARIA DE NAVEGACIÓN Y LOGICA INTERNA
 // ==========================================================================
@@ -191,6 +279,17 @@ if (btnVolverMenu) {
     btnVolverMenu.addEventListener('click', () => cambiarPantalla(vistaEnciclopedia, vistaMenu, 'menu'));
 }
 
+if (btnIrTimeline) {
+    btnIrTimeline.addEventListener('click', () => {
+        cambiarPantalla(vistaMenu, vistaTimeline, 'timeline');
+        cargarTimelineDinamico();
+    });
+}
+
+if (btnTimelineVolver) {
+    btnTimelineVolver.addEventListener('click', () => cambiarPantalla(vistaTimeline, vistaMenu, 'menu'));
+}
+
 window.addEventListener('popstate', (evento) => {
     const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia];
     todasLasPantallas.forEach(p => { if(p) { p.classList.remove('activa'); p.classList.add('oculta'); } });
@@ -205,7 +304,13 @@ window.addEventListener('popstate', (evento) => {
         filtrarYMostrarArticulos('all');
     } else if (vistaInicio) {
         vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
+    } else if (pantallaDestino === 'timeline' && vistaTimeline) {
+        vistaTimeline.classList.remove('oculta'); vistaTimeline.classList.add('activa');
+        cargarTimelineDinamico();
+    } else if (vistaInicio) {
+        vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
     }
+
 });
 
 window.addEventListener('DOMContentLoaded', () => {
