@@ -9,7 +9,7 @@ const vistaLogin = document.getElementById('vista-login');
 const vistaMenu = document.getElementById('vista-menu');
 const vistaEnciclopedia = document.getElementById('vista-enciclopedia');
 const vistaTimeline = document.getElementById('vista-timeline');
-const vistaRelations = document.getElementById('vista-relations'); // CORREGIDO: Declaración faltante
+const vistaRelations = document.getElementById('vista-relations'); 
 
 const btnStart = document.getElementById('btn-start');
 const formLogin = document.getElementById('form-login');
@@ -17,8 +17,8 @@ const btnIrEnciclopedia = document.getElementById('btn-ir-enciclopedia');
 const btnVolverMenu = document.getElementById('btn-volver-menu');
 const btnIrTimeline = document.getElementById('btn-ir-timeline');
 const btnTimelineVolver = document.getElementById('btn-timeline-volver');
-const btnIrRelations = document.getElementById('btn-ir-relations'); // CORREGIDO: Declaración faltante
-const btnRelationsVolver = document.getElementById('btn-relations-volver'); // CORREGIDO: Botón de salida para Relations
+const btnIrRelations = document.getElementById('btn-ir-relations'); 
+const btnRelationsVolver = document.getElementById('btn-relations-volver'); 
 
 const elArticuloTitulo = document.getElementById('articulo-titulo');
 const elArticuloImagen = document.getElementById('articulo-imagen');
@@ -45,18 +45,15 @@ const elRelacionesFichaTitulo = document.getElementById('relaciones-ficha-titulo
 const elRelacionesFichaTexto = document.getElementById('relaciones-ficha-texto');
 
 // Control cronológico de la vista de relaciones (Inicia en hito 0: Año 1922)
-let indiceCron规律elaciones = 0; 
 let indiceCronologicoRelaciones = 0;
 
-// ==========================================================================
 // BASES DE DATOS (MGS4 ARCHIVES & SOP TIMELINE)
-// ==========================================================================
 const baseDatosMGS4 = {
-    "solid-snake": {
-        titulo: "Solid Snake (Old Snake)",
+    "naked-snake": {   
+        titulo: "Naked Snake",
         categoria: "people",
-        imagen: "./assets/img/old login.png",
-        descripcion: "El legendario héroe que salvó al mundo de la amenaza de Outer Heaven, Zanzibar Land y Shadow Moses. En 2014, debido a su naturaleza como clon en el proyecto 'Les Enfants Terribles', sufre un envejecimiento celular acelerado. Ahora, bajo el nombre clave de Old Snake, se infiltra en los campos de batalla controlados por PMCs para detener a Liquid Ocelot."
+        imagen: "./assets/img/art-sop.png",
+        descripcion: "Agente operativo de FOX y protagonista de la Operación Snake Eater."
     },
     "liquid-ocelot": {
         titulo: "Liquid Ocelot",
@@ -165,10 +162,8 @@ const baseDatosSOP = {
         }
     ]
 };
-
-// ==========================================================================
+//================================
 // MÓDULO 1: ENCICLOPEDIA DINÁMICA
-// ==========================================================================
 function filtrarYMostrarArticulos(categoria) {
     if (!elListaArticulosDinamica) return;
     elListaArticulosDinamica.innerHTML = "";
@@ -178,7 +173,11 @@ function filtrarYMostrarArticulos(categoria) {
     }
 
     Object.entries(baseDatosMGS4).forEach(([llaveId, datos]) => {
-        if (categoria === 'all' || datos.categoria === categoria) {
+        const catArticulo = datos.categoria.toLowerCase();
+        const catFiltro = categoria.toLowerCase();
+
+        // Controlamos mapeos de categorías locales vs la convención del backend
+        if (catFiltro === 'all' || catArticulo === catFiltro || (catFiltro === 'people' && catArticulo === 'personajes')) {
             const li = document.createElement('li');
             li.className = 'articulo-item';
             li.setAttribute('data-id', llaveId);
@@ -187,7 +186,7 @@ function filtrarYMostrarArticulos(categoria) {
             li.addEventListener('click', () => {
                 document.querySelectorAll('.articulo-item').forEach(i => i.classList.remove('activo-mgs'));
                 li.classList.add('activo-mgs');
-                cargarContenidoVisor(llaveId);
+                cargarContenidoVisorDesdeServidor(llaveId);
             });
             elListaArticulosDinamica.appendChild(li);
         }
@@ -196,19 +195,36 @@ function filtrarYMostrarArticulos(categoria) {
     const primerArticulo = elListaArticulosDinamica.querySelector('.articulo-item');
     if (primerArticulo) {
         primerArticulo.classList.add('activo-mgs');
-        cargarContenidoVisor(primerArticulo.getAttribute('data-id'));
+        cargarContenidoVisorDesdeServidor(primerArticulo.getAttribute('data-id'));
     } else {
         limpiarVisor();
     }
 }
 
-function cargarContenidoVisor(idArticulo) {
-    const datos = baseDatosMGS4[idArticulo];
-    if (datos && elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
-        elArticuloTitulo.textContent = datos.titulo;
-        elArticuloImagen.src = datos.imagen;
-        elArticuloImagen.alt = datos.titulo;
-        elArticuloDescripcion.textContent = datos.descripcion;
+async function cargarContenidoVisorDesdeServidor(slug) {
+    try {
+        // Consumo desacoplado a través del objeto global 'api'
+        const articuloAPI = await api.obtenerArticuloPorSlug(slug);
+        
+        if (elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
+            elArticuloTitulo.textContent = articuloAPI.titulo;
+            elArticuloDescripcion.textContent = articuloAPI.resumen + " " + (articuloAPI.contenido || "");
+            
+            elArticuloImagen.src = (articuloAPI.imagenes && articuloAPI.imagenes.length > 0) 
+                ? articuloAPI.imagenes[0] 
+                : (baseDatosMGS4[slug]?.imagen || "./assets/img/placeholder-art.png");
+                
+            elArticuloImagen.alt = articuloAPI.titulo;
+        }
+    } catch (err) {
+        console.warn(`[SOP RECOVERY]: Ejecutando caché de contingencia local para: ${slug}`);
+        const datosLocales = baseDatosMGS4[slug];
+        if (datosLocales && elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
+            elArticuloTitulo.textContent = datosLocales.titulo;
+            elArticuloImagen.src = datosLocales.imagen;
+            elArticuloImagen.alt = datosLocales.titulo;
+            elArticuloDescripcion.textContent = datosLocales.descripcion;
+        }
     }
 }
 
@@ -228,204 +244,261 @@ itemsCategorias.forEach(cat => {
 
 // ==========================================================================
 // MÓDULO 2: LÍNEA DE TIEMPO (TIMELINE)
-// ==========================================================================
-function cargarTimelineDinamico() {
+async function cargarTimelineDinamico() {
     if (!elListaNodosCronologicos) return;
     elListaNodosCronologicos.innerHTML = "";
 
-    Object.entries(baseDatosTimeline).forEach(([ano, datos]) => {
-        const li = document.createElement('li');
-        li.className = 'nodo-tiempo-item';
-        li.setAttribute('data-ano', ano);
-        li.innerHTML = `
-            <div class="nodo-indicador"></div>
-            <div class="nodo-meta">
-                <span class="nodo-ano">${ano}</span>
-                <span class="nodo-evento-titulo">${datos.titulo}</span>
-            </div>
-        `;
+    try {
+        const registrosAPI = await api.obtenerCronologia();
 
-        li.addEventListener('click', () => {
-            document.querySelectorAll('.nodo-tiempo-item').forEach(n => n.classList.remove('activo-nodo'));
-            li.classList.add('activo-nodo');
-            mostrarDetalleTimeline(ano);
+        registrosAPI.forEach(evento => {
+            const li = document.createElement('li');
+            li.className = 'nodo-tiempo-item';
+            li.setAttribute('data-ano', evento.anio);
+            li.innerHTML = `
+                <div class="nodo-indicador"></div>
+                <div class="nodo-meta">
+                    <span class="nodo-ano">${evento.anio}</span>
+                    <span class="nodo-evento-titulo">${evento.tituloCorto}</span>
+                </div>
+            `;
+
+            li.addEventListener('click', () => {
+                document.querySelectorAll('.nodo-tiempo-item').forEach(n => n.classList.remove('activo-nodo'));
+                li.classList.add('activo-nodo');
+                
+                elTimelineTitulo.textContent = evento.tituloCorto.toUpperCase();
+                elTimelineFecha.textContent = `AÑO: ${evento.anio}`;
+                elTimelineDescripcion.textContent = evento.desc;
+                elTimelineImagen.src = evento.imagen || "./assets/img/placeholder-art.png";
+
+                if (elTextoEstadoTimeline) {
+                    elTextoEstadoTimeline.textContent = `Displaying historical archive for the year [${evento.anio}].`;
+                }
+            });
+            elListaNodosCronologicos.appendChild(li);
         });
-        elListaNodosCronologicos.appendChild(li);
-    });
 
-    const primerNodo = elListaNodosCronologicos.querySelector('.nodo-tiempo-item');
-    if (primerNodo) {
-        primerNodo.classList.add('activo-nodo');
-        mostrarDetalleTimeline(primerNodo.getAttribute('data-ano'));
-    }
-}
+        const primerNodo = elListaNodosCronologicos.querySelector('.nodo-tiempo-item');
+        if (primerNodo) primerNodo.click();
 
-function mostrarDetalleTimeline(anoId) {
-    const datos = baseDatosTimeline[anoId];
-    if (datos && elTimelineTitulo && elTimelineImagen && elTimelineFecha && elTimelineDescripcion) {
-        elTimelineTitulo.textContent = datos.titulo;
-        elTimelineImagen.src = datos.imagen;
-        elTimelineImagen.alt = datos.titulo;
-        elTimelineFecha.textContent = datos.fecha;
-        elTimelineDescripcion.textContent = datos.descripcion;
-
-        if (elTextoEstadoTimeline) {
-            elTextoEstadoTimeline.textContent = `Displaying historical archive for the year [${anoId}].`;
-        }
-    }
-}
-
-// ==========================================================================
-// MÓDULO 3: MAPA DE RELACIONES DINÁMICO (SOP GEOMETRÍA ELÍPTICA)
-// ==========================================================================
-function actualizarMapaRelaciones() {
-    if (!elTableroRelacionesGrid || !elRelationsMarcadorAnio) return;
-    elTableroRelacionesGrid.innerHTML = "";
-
-    const hitoActual = baseDatosSOP.timeline[indiceCronologicoRelaciones];
-    elRelationsMarcadorAnio.textContent = `SCHEMA RELAZIONI : ${hitoActual.anio}`;
-
-    const totalPersonajes = hitoActual.personajes.length;
-    const radioX = 180; 
-    const radioY = 110; 
-    const centroX = 275; 
-    const centroY = 160;
-
-    hitoActual.personajes.forEach((idPersonaje, index) => {
-        const datosArticulo = baseDatosSOP.articulos[idPersonaje];
-        if (!datosArticulo) return;
-
-        let posX = centroX;
-        let posY = centroY;
+    } catch (error) {
+        console.warn("[SOP CRITICAL TIMELINE]: Servidor inaccesible. Cargando línea de tiempo estática.");
+        elListaNodosCronologicos.innerHTML = "";
         
-        if (totalPersonajes > 1) {
-            const angulo = (index * 2 * Math.PI) / totalPersonajes;
-            posX = centroX + radioX * Math.cos(angulo);
-            posY = centroY + radioY * Math.sin(angulo);
-        }
-
-        const divNodo = document.createElement('div');
-        divNodo.className = 'nodo-personaje-dinamico';
-        divNodo.style.left = `${posX}px`;
-        divNodo.style.top = `${posY}px`;
-        divNodo.innerHTML = `
-            <div class="avatar-marco-tactico">
-                <img src="${datosArticulo.imagen}" alt="${datosArticulo.titulo}">
-            </div>
-            <div class="nodo-identificador">${datosArticulo.titulo}</div>
-        `;
-
-        divNodo.addEventListener('click', () => {
-            document.querySelectorAll('.nodo-personaje-dinamico').forEach(n => n.classList.remove('activo-nodo-neural'));
-            divNodo.classList.add('activo-nodo-neural');
-            
-            if (elRelacionesFichaTitulo && elRelacionesFichaTexto && elRelacionesFichaImg) {
-                elRelacionesFichaTitulo.textContent = datosArticulo.titulo;
-                elRelacionesFichaTexto.textContent = datosArticulo.descripcion;
-                elRelacionesFichaImg.src = datosArticulo.imagen;
-            }
+        Object.entries(baseDatosTimeline).forEach(([ano, datos]) => {
+            const li = document.createElement('li');
+            li.className = 'nodo-tiempo-item';
+            li.innerHTML = `
+                <div class="nodo-indicador"></div>
+                <div class="nodo-meta">
+                    <span class="nodo-ano">${ano}</span>
+                    <span class="nodo-evento-titulo">${datos.titulo}</span>
+                </div>
+            `;
+            li.addEventListener('click', () => {
+                document.querySelectorAll('.nodo-tiempo-item').forEach(n => n.classList.remove('activo-nodo'));
+                li.classList.add('activo-nodo');
+                elTimelineTitulo.textContent = datos.titulo;
+                elTimelineImagen.src = datos.imagen;
+                elTimelineFecha.textContent = datos.fecha;
+                elTimelineDescripcion.textContent = datos.descripcion;
+            });
+            elListaNodosCronologicos.appendChild(li);
         });
-        elTableroRelacionesGrid.appendChild(divNodo);
-    });
-
-    if (totalPersonajes > 0) {
-        const primerId = hitoActual.personajes[0];
-        const datosPrimerArticulo = baseDatosSOP.articulos[primerId];
-        if (datosPrimerArticulo && elRelacionesFichaTitulo && elRelacionesFichaTexto && elRelacionesFichaImg) {
-            elRelacionesFichaTitulo.textContent = datosPrimerArticulo.titulo;
-            elRelacionesFichaTexto.textContent = datosPrimerArticulo.descripcion;
-            elRelacionesFichaImg.src = datosPrimerArticulo.imagen;
-
-            const primerNodoDOM = elTableroRelacionesGrid.querySelector('.nodo-personaje-dinamico');
-            if (primerNodoDOM) primerNodoDOM.classList.add('activo-nodo-neural');
-        }
+        
+        const primerNodoLocal = elListaNodosCronologicos.querySelector('.nodo-tiempo-item');
+        if (primerNodoLocal) primerNodoLocal.click();
     }
 }
 
-// Controladores de avance temporal (Gatillos L1 / R1)
-if (btnRelationsPrev) {
-    btnRelationsPrev.addEventListener('click', () => {
-        if (indiceCronologicoRelaciones > 0) {
-            indiceCronologicoRelaciones--;
-            actualizarMapaRelaciones();
-        }
-    });
-}
-
-if (btnRelationsNext) {
-    btnRelationsNext.addEventListener('click', () => {
-        if (indiceCronologicoRelaciones < baseDatosSOP.timeline.length - 1) {
-            indiceCronologicoRelaciones++;
-            actualizarMapaRelaciones();
-        }
-    });
-}
-
 // ==========================================================================
-// MAQUINARIA DE NAVEGACIÓN (MAQUINA DE ESTADOS HASH)
-// ==========================================================================
-function cambiarPantalla(pantallaActual, pantallaSiguiente, nombreHash) {
-    if (pantallaActual && pantallaSiguiente) {
-        pantallaActual.classList.remove('activa');
-        pantallaActual.classList.add('oculta');
-        pantallaSiguiente.classList.remove('oculta');
-        pantallaSiguiente.classList.add('activa');
+// MÓDULO 3: MAPA DE RELACIONES INTERACTIVO (GRAFO DE BACKEND)
+async function actualizarMapaRelaciones() {
+    if (!elTableroRelacionesGrid || !elRelationsMarcadorAnio) return;
+    elTableroRelacionesGrid.innerHTML = `<div style="color:#7c7c7c; padding:20px; font-family:monospace; text-align:center; width:100%;">MAPEANDO CONEXIONES RED PATRIOTS...</div>`;
 
-        if (nombreHash && history.state?.pantalla !== nombreHash) {
-            history.pushState({ pantalla: nombreHash }, '', `#${nombreHash}`);
+    try {
+        const datosGrafo = await api.obtenerRelaciones();
+
+        if (!datosGrafo || !datosGrafo.nodes || datosGrafo.nodes.length === 0) {
+            elTableroRelacionesGrid.innerHTML = `<div style="color:#ff3333; padding:20px;">SISTEMA DE RELACIONES SIN NODOS ACTIVOS</div>`;
+            return;
         }
+
+        elTableroRelacionesGrid.innerHTML = "";
+        
+        const nodoPrincipal = datosGrafo.nodes[0];
+        elRelationsMarcadorAnio.textContent = `SOP GRAPH LAYER: UNIDAD [${nodoPrincipal.categoria.toUpperCase()}]`;
+
+        const totalNodos = datosGrafo.nodes.length;
+        const radioX = 180; 
+        const radioY = 110; 
+        const centroX = 275; 
+        const centroY = 160;
+
+        datosGrafo.nodes.forEach((nodo, index) => {
+            let posX = centroX;
+            let posY = centroY;
+            
+            if (totalNodos > 1) {
+                const angulo = (index * 2 * Math.PI) / totalNodos;
+                posX = centroX + radioX * Math.cos(angulo);
+                posY = centroY + radioY * Math.sin(angulo);
+            }
+
+            const divNodo = document.createElement('div');
+            divNodo.className = 'nodo-personaje-dinamico';
+            divNodo.style.left = `${posX}px`;
+            divNodo.style.top = `${posY}px`;
+            
+            const imagenAsignada = baseDatosMGS4[nodo.slug]?.imagen || "./assets/img/placeholder-art.png";
+
+            divNodo.innerHTML = `
+                <div class="avatar-marco-tactico">
+                    <img src="${imagenAsignada}" alt="${nodo.label}">
+                </div>
+                <div class="nodo-identificador">${nodo.label.toUpperCase()}</div>
+            `;
+
+            divNodo.addEventListener('click', async () => {
+                document.querySelectorAll('.nodo-personaje-dinamico').forEach(n => n.classList.remove('activo-nodo-neural'));
+                divNodo.classList.add('activo-nodo-neural');
+                
+                // Buscamos si el nodo actual tiene aristas (vínculos de Postman) hacia otros destinos
+                const conexionAsociada = datosGrafo.edges.find(e => e.origen === nodo.id);
+                let detalleConexionHTML = "";
+                
+                if (conexionAsociada) {
+                    const nodoDestino = datosGrafo.nodes.find(n => n.id === conexionAsociada.destino);
+                    detalleConexionHTML = `<br><br><strong>VÍNCULO DETECTADO:</strong> Relación de tipo [${conexionAsociada.tipo}] con objetivo en: ${nodoDestino ? nodoDestino.label : 'ID ' + conexionAsociada.destino}.`;
+                }
+
+                try {
+                    const artData = await api.obtenerArticuloPorSlug(nodo.slug);
+                    if (elRelacionesFichaTitulo && elRelacionesFichaTexto && elRelacionesFichaImg) {
+                        elRelacionesFichaTitulo.textContent = artData.titulo;
+                        elRelacionesFichaTexto.innerHTML = `${artData.resumen}${detalleConexionHTML}`;
+                        elRelacionesFichaImg.src = imagenAsignada;
+                    }
+                } catch {
+                    if (elRelacionesFichaTitulo && elRelacionesFichaTexto && elRelacionesFichaImg) {
+                        elRelacionesFichaTitulo.textContent = nodo.label;
+                        elRelacionesFichaTexto.innerHTML = `Identificador de sistema SOP asignado con ID ${nodo.id}. Categoría: ${nodo.categoria}.${detalleConexionHTML}`;
+                        elRelacionesFichaImg.src = imagenAsignada;
+                    }
+                }
+            });
+
+            elTableroRelacionesGrid.appendChild(divNodo);
+        });
+
+        const primerNodoDOM = elTableroRelacionesGrid.querySelector('.nodo-personaje-dinamico');
+        if (primerNodoDOM) primerNodoDOM.click();
+
+    } catch (falla) {
+        console.error("[SOP GRAFO COMPONENT FAIL]:", falla);
+        // En lugar de solo el mensaje de error, limpiamos y pintamos un nodo local de emergencia
+        elTableroRelacionesGrid.innerHTML = "";
+        
+        const divNodoLocal = document.createElement('div');
+        divNodoLocal.className = 'nodo-personaje-dinamico';
+        divNodoLocal.style.left = `275px`;
+        divNodoLocal.style.top = `160px`;
+        divNodoLocal.innerHTML = `
+            <div class="avatar-marco-tactico">
+                <img src="./assets/img/placeholder-art.png" alt="Naked Snake">
+            </div>
+            <div class="nodo-identificador">NAKED SNAKE (LOCAL)</div>
+        `;
+        elTableroRelacionesGrid.appendChild(divNodoLocal);
     }
 }
 
-// Asignación de Listeners de los Menús
+// ==========================================================================
+// CONTROLADORES DE PANTALLAS (TRANSICIONES)
+
+// Transición inicial: Inicio -> Login
 if (btnStart) {
-    btnStart.addEventListener('click', () => cambiarPantalla(vistaInicio, vistaLogin, 'login'));
-}
-
-if (formLogin) {
-    formLogin.addEventListener('submit', (evento) => {
-        evento.preventDefault();
-        cambiarPantalla(vistaLogin, vistaMenu, 'menu');
+    btnStart.addEventListener('click', () => {
+        vistaInicio.classList.replace('activa', 'oculta');
+        vistaLogin.classList.replace('oculta', 'activa');
+        // Registramos el estado en el historial del navegador
+        history.pushState({ pantalla: 'login' }, '', '#login');
     });
 }
 
+// Transición Login -> Menú Principal
+if (formLogin) {
+    formLogin.addEventListener('submit', (e) => {
+        e.preventDefault();
+        vistaLogin.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        // Registramos el estado en el historial del navegador
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
+}
+
+// Navegación Menú -> Enciclopedia
 if (btnIrEnciclopedia) {
     btnIrEnciclopedia.addEventListener('click', () => {
-        cambiarPantalla(vistaMenu, vistaEnciclopedia, 'enciclopedia');
+        vistaMenu.classList.replace('activa', 'oculta');
+        vistaEnciclopedia.classList.replace('oculta', 'activa');
         filtrarYMostrarArticulos('all');
+        // Registramos el estado en el historial del navegador
+        history.pushState({ pantalla: 'enciclopedia' }, '', '#enciclopedia');
     });
 }
 
 if (btnVolverMenu) {
-    btnVolverMenu.addEventListener('click', () => cambiarPantalla(vistaEnciclopedia, vistaMenu, 'menu'));
+    btnVolverMenu.addEventListener('click', () => {
+        vistaEnciclopedia.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        // Al regresar manualmente, empujamos el estado de menú
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
 }
 
+// Navegación Menú -> Timeline
 if (btnIrTimeline) {
     btnIrTimeline.addEventListener('click', () => {
-        cambiarPantalla(vistaMenu, vistaTimeline, 'timeline');
+        vistaMenu.classList.replace('activa', 'oculta');
+        vistaTimeline.classList.replace('oculta', 'activa');
         cargarTimelineDinamico();
+        // Registramos el estado en el historial del navegador
+        history.pushState({ pantalla: 'timeline' }, '', '#timeline');
     });
 }
 
 if (btnTimelineVolver) {
-    btnTimelineVolver.addEventListener('click', () => cambiarPantalla(vistaTimeline, vistaMenu, 'menu'));
+    btnTimelineVolver.addEventListener('click', () => {
+        vistaTimeline.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
 }
 
+// Navegación Menú -> Relaciones (SOP Layer)
 if (btnIrRelations) {
     btnIrRelations.addEventListener('click', () => {
-        cambiarPantalla(vistaMenu, vistaRelations, 'relations');
-        indiceCronologicoRelaciones = 0; 
+        vistaMenu.classList.replace('activa', 'oculta');
+        vistaRelations.classList.replace('oculta', 'activa');
         actualizarMapaRelaciones();
+        // Registramos el estado en el historial del navegador
+        history.pushState({ pantalla: 'relations' }, '', '#relations');
     });
 }
 
 if (btnRelationsVolver) {
-    btnRelationsVolver.addEventListener('click', () => cambiarPantalla(vistaRelations, vistaMenu, 'menu'));
+    btnRelationsVolver.addEventListener('click', () => {
+        vistaRelations.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
 }
 
 // ==========================================================================
 // GESTOR DE HISTORIAL INTEGRAL (POPSTATE CORREGIDO)
-// ==========================================================================
 window.addEventListener('popstate', (evento) => {
     const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia, vistaTimeline, vistaRelations];
     
