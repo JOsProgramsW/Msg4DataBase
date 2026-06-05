@@ -158,8 +158,11 @@
     top: 4vh;
     left: 3vw;
     font-size: 1.8rem;
-    color: #A3A69A;
+    color: rgba(163, 166, 154, 0.25); /* Bajamos la opacidad a un 25% para que sea sutil */
     font-weight: bold;
+    z-index: 1; /* Se mantiene al fondo */
+    text-transform: uppercase;
+    pointer-events: none; /* Evita interferir con clicks en la pantalla */
 }
 
 .placeholder-logo-serpiente {
@@ -282,13 +285,16 @@
 }
 
 .visor-texto {
-    font-size: 1.25rem;
+font-size: 1.25rem;
     line-height: 1.6;
     color: #141615;
     text-align: justify;
     font-family: 'Share Tech Mono', monospace;
-    flex-grow: 1; /* Permite al bloque ocupar todo el ancho remanente */
+    flex-grow: 1;
     margin: 0;
+    max-height: 280px; /* Alínealo a la altura de la imagen (.visor-media) */
+    overflow-y: auto;   /* Activa el scroll vertical solo si es necesario */
+    padding-right: 10px;/* Evita que el scroll tape las últimas letras */
 }
 
 /* --------------------------------------------------------------------------
@@ -667,6 +673,7 @@
     color: #141615;
     text-align: justify;
     margin: 0;
+    max-height: 12vh;
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 8px;
 }
