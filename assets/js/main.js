@@ -164,7 +164,7 @@ const baseDatosSOP = {
 };
 //================================
 // MÓDULO 1: ENCICLOPEDIA DINÁMICA
-function filtrarYMostrarArticulos(categoria) {
+async function filtrarYMostrarArticulos(categoria) {
     if (!elListaArticulosDinamica) return;
     elListaArticulosDinamica.innerHTML = "";
 
@@ -172,26 +172,84 @@ function filtrarYMostrarArticulos(categoria) {
         elTextoEstado.textContent = categoria === 'all' ? "Display all entries" : `Display entries in [${categoria.toUpperCase()}]`;
     }
 
-    Object.entries(baseDatosMGS4).forEach(([llaveId, datos]) => {
-        const catArticulo = datos.categoria.toLowerCase();
+    // Cache local de contingencia unificada
+    const baseDatosUnificada = {
+        ...baseDatosMGS4,
+        ...(baseDatosSOP && baseDatosSOP.articulos ? baseDatosSOP.articulos : {})
+    };
+
+    let articulosParaRenderizar = [];
+
+    try {
+        // 1. Intentamos recuperar los artículos reales desde el servidor
+        // NOTA: Asumimos que tu objeto global 'api' cuenta con un método para listar todo
+        const articulosAPI = await api.obtenerArticulos(); 
+        
+        // Convertimos la respuesta de la API a un formato mapeable uniforme
+        articulosParaRenderizar = articulosAPI.map(art => ({
+            id: art.slug || art.id,
+            titulo: art.titulo,
+            categoria: art.categoria
+        }));
+        
+    } catch (err) {
+        console.warn("[SOP RECOVERY]: Servidor inaccesible para listado global. Cargando catálogo local.");
+        
+        // 2. FALLBACK: Si la API falla, estructuramos el renderizado con los datos locales
+        articulosParaRenderizar = Object.entries(baseDatosUnificada).map(([llaveId, datos]) => ({
+            id: llaveId,
+            titulo: datos.titulo,
+            categoria: datos.categoria
+        }));
+    }
+
+    // 3. Renderizado Dinámico e Inteligente en el DOM
+    articulosParaRenderizar.forEach(articulo => {
+        const catArticulo = articulo.categoria.toLowerCase();
         const catFiltro = categoria.toLowerCase();
 
-        // Controlamos mapeos de categorías locales vs la convención del backend
-        if (catFiltro === 'all' || catArticulo === catFiltro || (catFiltro === 'people' && catArticulo === 'personajes')) {
+        let esCoincidencia = false;
+
+        // Filtro táctico por categorías
+       if (catFiltro === 'all') {
+            esCoincidencia = true;
+        } else if (catFiltro === 'people' && (catArticulo === 'people' || catArticulo === 'personajes' || catArticulo === 'personaje')) {
+            esCoincidencia = true;
+        } else if (catFiltro === 'events' && (catArticulo === 'eventos' || catArticulo === 'events' || catArticulo === 'historico')) {
+            // Mapea perfectamente tu registro 'EVENTOS' de SQL Server
+            esCoincidencia = true;
+        } else if (catFiltro === 'organizations' && (catArticulo === 'organizations' || catArticulo === 'organizaciones' || catArticulo === 'organizacion')) {
+            esCoincidencia = true;
+        } else if (catFiltro === 'science' && (catArticulo === 'science' || catArticulo === 'ciencia' || catArticulo === 'tecnologia')) {
+            esCoincidencia = true;
+        } else if (catFiltro === 'military' && (catArticulo === 'military' || catArticulo === 'militar' || catArticulo === 'armas')) {
+            esCoincidencia = true;
+        } else if (catFiltro === 'locations' && (catArticulo === 'locations' || catArticulo === 'lugares' || catArticulo === 'ubicaciones')) {
+            esCoincidencia = true;
+        } else if (catFiltro === 'other' && (catArticulo === 'other' || catArticulo === 'otros' || catArticulo === '')) {
+            esCoincidencia = true;
+        } else if (catArticulo === catFiltro) {
+            // Salvaguarda por si en el futuro los registras en inglés directamente en la BD
+            esCoincidencia = true;
+        }
+
+        // Si pasa el filtro táctico, inyectamos el elemento en la lista
+        if (esCoincidencia) {
             const li = document.createElement('li');
             li.className = 'articulo-item';
-            li.setAttribute('data-id', llaveId);
-            li.textContent = datos.titulo.split(" (")[0]; 
+            li.setAttribute('data-id', articulo.id);
+            li.textContent = articulo.titulo.split(" (")[0]; 
 
             li.addEventListener('click', () => {
                 document.querySelectorAll('.articulo-item').forEach(i => i.classList.remove('activo-mgs'));
                 li.classList.add('activo-mgs');
-                cargarContenidoVisorDesdeServidor(llaveId);
+                cargarContenidoVisorDesdeServidor(articulo.id);
             });
             elListaArticulosDinamica.appendChild(li);
         }
     });
 
+    // Auto-selección del primer elemento cargado para evitar pantallas vacías
     const primerArticulo = elListaArticulosDinamica.querySelector('.articulo-item');
     if (primerArticulo) {
         primerArticulo.classList.add('activo-mgs');
@@ -202,6 +260,18 @@ function filtrarYMostrarArticulos(categoria) {
 }
 
 async function cargarContenidoVisorDesdeServidor(slug) {
+    // 1. Clonación local segura para el fallback de contingencia
+    const baseDatosUnificada = {
+        ...baseDatosMGS4,
+        ...(baseDatosSOP && baseDatosSOP.articulos ? baseDatosSOP.articulos : {})
+    };
+
+    // UX Feedback: Estado de carga táctico
+    if (elArticuloTitulo && elArticuloDescripcion) {
+        elArticuloTitulo.textContent = "ACCEDIENDO...";
+        elArticuloDescripcion.textContent = "ESTABLECIENDO CONEXIÓN SEGURA CON LA RED PATRIOTS / TRANSMITIENDO CÓDEC...";
+    }
+
     try {
         // Consumo desacoplado a través del objeto global 'api'
         const articuloAPI = await api.obtenerArticuloPorSlug(slug);
@@ -210,15 +280,18 @@ async function cargarContenidoVisorDesdeServidor(slug) {
             elArticuloTitulo.textContent = articuloAPI.titulo;
             elArticuloDescripcion.textContent = articuloAPI.resumen + " " + (articuloAPI.contenido || "");
             
+            // Usamos baseDatosUnificada para buscar la imagen de respaldo
             elArticuloImagen.src = (articuloAPI.imagenes && articuloAPI.imagenes.length > 0) 
                 ? articuloAPI.imagenes[0] 
-                : (baseDatosMGS4[slug]?.imagen || "./assets/img/placeholder-art.png");
+                : (baseDatosUnificada[slug]?.imagen || "./assets/img/placeholder-art.png");
                 
             elArticuloImagen.alt = articuloAPI.titulo;
         }
     } catch (err) {
         console.warn(`[SOP RECOVERY]: Ejecutando caché de contingencia local para: ${slug}`);
-        const datosLocales = baseDatosMGS4[slug];
+        
+        // SOLUCIÓN SQA: Buscamos en el objeto unificado para rescatar a The Boss o Unidad Cobra
+        const datosLocales = baseDatosUnificada[slug];
         if (datosLocales && elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
             elArticuloTitulo.textContent = datosLocales.titulo;
             elArticuloImagen.src = datosLocales.imagen;
