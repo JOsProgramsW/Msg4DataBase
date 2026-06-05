@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <section id="vista-inicio" class="pantalla-sistema activa">
+  <section id="vista-inicio" class="pantalla-sistema activa">
         <div class="marco-digital"></div>
         
         <div class="contenedor-pantalla-completa">
@@ -117,7 +117,6 @@
         </div>
 
         <div class="contenedor-pantalla-completa">
-            
             <div class="split-enciclopedia-avanzada">
                 <div class="panel-categorias-mgs">
                     <ul class="lista-categorias-db">
@@ -157,8 +156,7 @@
                 </div>
 
                 <div class="panel-lista-terminos-filtrados">
-                    <ul class="lista-mgs-items" id="lista-dinamica-articulos">
-                        </ul>
+                    <ul class="lista-mgs-items" id="lista-dinamica-articulos"></ul>
                 </div>
 
                 <div class="panel-visor-contenido" id="visor-contenido">
@@ -179,7 +177,6 @@
             <div class="barra-estado-mgs">
                 <span id="texto-estado-subpantalla">Display all entries</span>
             </div>
-
         </div>
 
         <div class="barra-controles-mgs">
@@ -188,6 +185,7 @@
             <div>SELECCIONAR <span class="control-btn">R1</span></div>
         </div>
     </section>
+
     <section id="vista-timeline" class="pantalla-sistema oculta">
         <div class="marco-digital"></div>
         <div class="marca-agua-bg">DATABASE / TIMELINE</div>
@@ -198,14 +196,12 @@
 
         <div class="contenedor-pantalla-completa">
             <div class="split-timeline-avanzado">
-                
                 <div class="panel-cronologico-mgs">
                     <div class="eje-linea-vertical"></div>
-                    <ul class="lista-nodos-tiempo" id="lista-nodos-cronologicos">
-                        </ul>
+                    <ul class="lista-nodos-tiempo" id="lista-nodos-cronologicos"></ul>
                 </div>
 
-                <div class="panel-visor-contenido" id="visor-timeline-contenido">
+                <div class="panel-visor-contenido panel-visor-timeline" id="visor-timeline-contenido">
                     <h2 class="visor-titulo" id="timeline-titulo">SELECCIONE UN AÑO</h2>
                     <div class="visor-linea-separadora"></div>
                     
@@ -221,7 +217,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="barra-estado-mgs">
@@ -236,7 +231,7 @@
         </div>
     </section>
 
-   <section id="vista-relations" class="pantalla-sistema oculta">
+    <section id="vista-relations" class="pantalla-sistema oculta">
         <div class="marco-digital"></div>
         <div class="marca-agua-bg">SOP / RELATIONS</div>
 
@@ -245,7 +240,6 @@
         </div>
 
         <div class="contenedor-pantalla-completa el-mapa-red">
-            
             <div class="tablero-relaciones-dinamico">
                 <div class="tablero-relaciones-grid"></div>
             </div>
@@ -260,9 +254,7 @@
                     <p id="relaciones-ficha-texto">Haga clic sobre un agente o facción del mapa neural para extraer su registro directo del archivo SOP.</p>
                 </div>
             </div>
-        </div>
-
-        <div class="barra-controles-mgs">
+        </div> <div class="barra-controles-mgs">
             <div id="btn-relations-volver" style="cursor: pointer;"><span class="control-btn">L1</span> MENU PRINCIPAL</div>
             <div class="controles-navegacion-temporal">
                 <span id="btn-relations-prev" style="cursor: pointer;" class="control-btn-flecha">&lt; ANTERIOR</span>
@@ -274,5 +266,6 @@
     </section>
 
     <script src="./assets/js/main.js"></script>
+    <script src="./assets/js/api.js"></script>
 </body>
 </html>
