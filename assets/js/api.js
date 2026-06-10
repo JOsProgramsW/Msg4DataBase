@@ -1,3 +1,8 @@
+// el puente de conexion entre el frontend y el backend, aqui se hacen las peticiones a la api
+// y se reciben las respuestas, luego se procesan y se envian al frontend para su visualizacion
+// ==========================================================================
+// API SERVICE LAYER: PUENTE DE CONEXIÓN CON BACKEND ASP.NET CORE
+// ======================================================================
 const API_BASE_URL = "https://localhost:7157/api"; // Asegúrate de que coincida con tu puerto de IIS/Kestrel
 
 const api = {
