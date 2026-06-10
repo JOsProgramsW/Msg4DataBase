@@ -44,6 +44,11 @@ const elRelacionesFichaImg = document.getElementById('relaciones-ficha-img');
 const elRelacionesFichaTitulo = document.getElementById('relaciones-ficha-titulo');
 const elRelacionesFichaTexto = document.getElementById('relaciones-ficha-texto');
 
+const vistaPublicar = document.getElementById('vista-publicar');
+const btnIrPublicar = document.getElementById('btn-ir-publicar'); // Suponiendo que pones este botón en tu vistaMenu
+const btnPublicarVolver = document.getElementById('btn-publicar-volver');
+const formPublicar = document.getElementById('form-publicar-articulo');
+
 // Control cronológico de la vista de relaciones (Inicia en hito 0: Año 1922)
 let indiceCronologicoRelaciones = 0;
 
@@ -164,6 +169,35 @@ const baseDatosSOP = {
 };
 //================================
 // MÓDULO 1: ENCICLOPEDIA DINÁMICA
+function registrarEnHistorial(slug, titulo) {
+    let historial = JSON.parse(localStorage.getItem('mgs4_historial')) || [];
+    historial = historial.filter(item => item.slug !== slug);
+    historial.unshift({ 
+        slug: slug, 
+        titulo: titulo, 
+        fecha: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    });
+    if (historial.length > 10) historial.pop();
+    localStorage.setItem('mgs4_historial', JSON.stringify(historial));
+}
+
+function alternarFavorito(slug, titulo) {
+    let favoritos = JSON.parse(localStorage.getItem('mgs4_favoritos')) || [];
+    const existe = favoritos.some(item => item.slug === slug);
+
+    if (existe) {
+        favoritos = favoritos.filter(item => item.slug !== slug);
+    } else {
+        favoritos.push({ slug: slug, titulo: titulo });
+    }
+    localStorage.setItem('mgs4_favoritos', JSON.stringify(favoritos));
+    return !existe;
+}
+
+// ==========================================================================
+// MÓDULO 1: ENCICLOPEDIA DINÁMICA & CONSUMO DE INTEGRACIÓN CON API.JS
+// ==========================================================================
+
 async function filtrarYMostrarArticulos(categoria) {
     if (!elListaArticulosDinamica) return;
     elListaArticulosDinamica.innerHTML = "";
@@ -172,30 +206,25 @@ async function filtrarYMostrarArticulos(categoria) {
         elTextoEstado.textContent = categoria === 'all' ? "Display all entries" : `Display entries in [${categoria.toUpperCase()}]`;
     }
 
-    // Cache local de contingencia unificada
-    const baseDatosUnificada = {
-        ...baseDatosMGS4,
-        ...(baseDatosSOP && baseDatosSOP.articulos ? baseDatosSOP.articulos : {})
-    };
+    if (categoria === 'historial' || categoria === 'favoritos') {
+        mostrarSeccionEspecial(categoria);
+        return;
+    }
 
     let articulosParaRenderizar = [];
 
     try {
-        // 1. Intentamos recuperar los artículos reales desde el servidor
-        // NOTA: Asumimos que tu objeto global 'api' cuenta con un método para listar todo
+        // 🟢 SOLUCIÓN SQA: Se integra api.js eliminando el fetch manual a API_URL
         const articulosAPI = await api.obtenerArticulos(); 
         
-        // Convertimos la respuesta de la API a un formato mapeable uniforme
         articulosParaRenderizar = articulosAPI.map(art => ({
-            id: art.slug || art.id,
+            id: art.slug || art.idArt,
             titulo: art.titulo,
             categoria: art.categoria
         }));
         
     } catch (err) {
-        console.warn("[SOP RECOVERY]: Servidor inaccesible para listado global. Cargando catálogo local.");
-        
-        // 2. FALLBACK: Si la API falla, estructuramos el renderizado con los datos locales
+        console.warn("[SOP RECOVERY]: Servidor inaccesible para listado global. Cargando catálogo local.", err);
         articulosParaRenderizar = Object.entries(baseDatosUnificada).map(([llaveId, datos]) => ({
             id: llaveId,
             titulo: datos.titulo,
@@ -203,37 +232,21 @@ async function filtrarYMostrarArticulos(categoria) {
         }));
     }
 
-    // 3. Renderizado Dinámico e Inteligente en el DOM
     articulosParaRenderizar.forEach(articulo => {
         const catArticulo = articulo.categoria.toLowerCase();
         const catFiltro = categoria.toLowerCase();
-
         let esCoincidencia = false;
 
-        // Filtro táctico por categorías
-       if (catFiltro === 'all') {
-            esCoincidencia = true;
-        } else if (catFiltro === 'people' && (catArticulo === 'people' || catArticulo === 'personajes' || catArticulo === 'personaje')) {
-            esCoincidencia = true;
-        } else if (catFiltro === 'events' && (catArticulo === 'eventos' || catArticulo === 'events' || catArticulo === 'historico')) {
-            // Mapea perfectamente tu registro 'EVENTOS' de SQL Server
-            esCoincidencia = true;
-        } else if (catFiltro === 'organizations' && (catArticulo === 'organizations' || catArticulo === 'organizaciones' || catArticulo === 'organizacion')) {
-            esCoincidencia = true;
-        } else if (catFiltro === 'science' && (catArticulo === 'science' || catArticulo === 'ciencia' || catArticulo === 'tecnologia')) {
-            esCoincidencia = true;
-        } else if (catFiltro === 'military' && (catArticulo === 'military' || catArticulo === 'militar' || catArticulo === 'armas')) {
-            esCoincidencia = true;
-        } else if (catFiltro === 'locations' && (catArticulo === 'locations' || catArticulo === 'lugares' || catArticulo === 'ubicaciones')) {
-            esCoincidencia = true;
-        } else if (catFiltro === 'other' && (catArticulo === 'other' || catArticulo === 'otros' || catArticulo === '')) {
-            esCoincidencia = true;
-        } else if (catArticulo === catFiltro) {
-            // Salvaguarda por si en el futuro los registras en inglés directamente en la BD
-            esCoincidencia = true;
-        }
+        if (catFiltro === 'all') esCoincidencia = true;
+        else if (catFiltro === 'people' && ['people', 'personajes', 'personaje'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'events' && ['eventos', 'events', 'historico'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'organizations' && ['organizations', 'organizaciones', 'organizacion'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'science' && ['science', 'ciencia', 'tecnologia'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'military' && ['military', 'militar', 'armas'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'locations' && ['locations', 'lugares', 'ubicaciones'].includes(catArticulo)) esCoincidencia = true;
+        else if (catFiltro === 'other' && ['other', 'otros', ''].includes(catArticulo)) esCoincidencia = true;
+        else if (catArticulo === catFiltro) esCoincidencia = true;
 
-        // Si pasa el filtro táctico, inyectamos el elemento en la lista
         if (esCoincidencia) {
             const li = document.createElement('li');
             li.className = 'articulo-item';
@@ -243,62 +256,105 @@ async function filtrarYMostrarArticulos(categoria) {
             li.addEventListener('click', () => {
                 document.querySelectorAll('.articulo-item').forEach(i => i.classList.remove('activo-mgs'));
                 li.classList.add('activo-mgs');
+                
+                registrarEnHistorial(articulo.id, articulo.titulo);
                 cargarContenidoVisorDesdeServidor(articulo.id);
             });
             elListaArticulosDinamica.appendChild(li);
         }
     });
 
-    // Auto-selección del primer elemento cargado para evitar pantallas vacías
     const primerArticulo = elListaArticulosDinamica.querySelector('.articulo-item');
     if (primerArticulo) {
         primerArticulo.classList.add('activo-mgs');
-        cargarContenidoVisorDesdeServidor(primerArticulo.getAttribute('data-id'));
+        const defaultSlug = primerArticulo.getAttribute('data-id');
+        const defaultTitulo = primerArticulo.textContent;
+        registrarEnHistorial(defaultSlug, defaultTitulo);
+        cargarContenidoVisorDesdeServidor(defaultSlug);
     } else {
         limpiarVisor();
     }
 }
 
 async function cargarContenidoVisorDesdeServidor(slug) {
-    // 1. Clonación local segura para el fallback de contingencia
-    const baseDatosUnificada = {
-        ...baseDatosMGS4,
-        ...(baseDatosSOP && baseDatosSOP.articulos ? baseDatosSOP.articulos : {})
-    };
-
-    // UX Feedback: Estado de carga táctico
     if (elArticuloTitulo && elArticuloDescripcion) {
         elArticuloTitulo.textContent = "ACCEDIENDO...";
         elArticuloDescripcion.textContent = "ESTABLECIENDO CONEXIÓN SEGURA CON LA RED PATRIOTS / TRANSMITIENDO CÓDEC...";
     }
 
     try {
-        // Consumo desacoplado a través del objeto global 'api'
         const articuloAPI = await api.obtenerArticuloPorSlug(slug);
         
         if (elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
             elArticuloTitulo.textContent = articuloAPI.titulo;
-            elArticuloDescripcion.textContent = articuloAPI.resumen + " " + (articuloAPI.contenido || "");
+            elArticuloDescripcion.textContent = `${articuloAPI.resumen} ${articuloAPI.contenido || ""}`;
             
-            // Usamos baseDatosUnificada para buscar la imagen de respaldo
-            elArticuloImagen.src = (articuloAPI.imagenes && articuloAPI.imagenes.length > 0) 
-                ? articuloAPI.imagenes[0] 
-                : (baseDatosUnificada[slug]?.imagen || "./assets/img/placeholder-art.png");
+            if (articuloAPI.artImagenes && articuloAPI.artImagenes.length > 0) {
+                const imgPrincipal = articuloAPI.artImagenes.find(img => img.esPrincipal) || articuloAPI.artImagenes[0];
+                
+                // 🟢 SQA SANITIZACIÓN: Nos aseguramos de obtener la RAÍZ limpia del servidor (sin el '/api')
+                let raizServidor = api.API_BASE_URL;
+                if (raizServidor.endsWith('/api')) {
+                    raizServidor = raizServidor.replace('/api', '');
+                }
+                
+                // Limpiamos barras duplicadas por si acaso
+                let rutaImagen = imgPrincipal.urlImg;
+                if (rutaImagen.startsWith('/') && raizServidor.endsWith('/')) {
+                    rutaImagen = rutaImagen.substring(1);
+                }
+
+                // Asignamos la URL limpia reconstruida
+                elArticuloImagen.src = `${raizServidor}${rutaImagen}`;
+                console.log("[SOP RENDER] Intentando cargar imagen desde:", elArticuloImagen.src);
+            } else {
+                // Fallback a un placeholder genérico de internet si el tuyo local falla
+                elArticuloImagen.src = "https://placehold.co/600x400?text=Sin+Imagen";
+            }
                 
             elArticuloImagen.alt = articuloAPI.titulo;
         }
     } catch (err) {
-        console.warn(`[SOP RECOVERY]: Ejecutando caché de contingencia local para: ${slug}`);
-        
-        // SOLUCIÓN SQA: Buscamos en el objeto unificado para rescatar a The Boss o Unidad Cobra
-        const datosLocales = baseDatosUnificada[slug];
-        if (datosLocales && elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
-            elArticuloTitulo.textContent = datosLocales.titulo;
-            elArticuloImagen.src = datosLocales.imagen;
-            elArticuloImagen.alt = datosLocales.titulo;
-            elArticuloDescripcion.textContent = datosLocales.descripcion;
+        console.error("[SOP VISOR ERROR]:", err);
+        if (elArticuloTitulo && elArticuloImagen && elArticuloDescripcion) {
+            elArticuloTitulo.textContent = "ERROR DE CARGA";
+            elArticuloImagen.src = "https://placehold.co/600x400?text=Error+Conexion";
+            elArticuloImagen.alt = "Error de conexión";
+            elArticuloDescripcion.textContent = "No se logró establecer la sincronización de datos.";
         }
     }
+}
+function mostrarSeccionEspecial(tipo) {
+    let datos = [];
+    if (tipo === 'historial') {
+        datos = JSON.parse(localStorage.getItem('mgs4_historial')) || [];
+    } else if (tipo === 'favoritos') {
+        datos = JSON.parse(localStorage.getItem('mgs4_favoritos')) || [];
+    }
+
+    if (datos.length === 0) {
+        elListaArticulosDinamica.innerHTML = `<li class="vacio-mgs" style="color:#7c7c7c; padding:10px; font-family:monospace;">SOP: NO HAY REGISTROS EN [${tipo.toUpperCase()}]</li>`;
+        limpiarVisor();
+        return;
+    }
+
+    datos.forEach(item => {
+        const li = document.createElement('li');
+        li.className = "articulo-item";
+        li.innerHTML = tipo === 'historial' 
+            ? `<span>${item.titulo}</span> <small style="float:right; color:#00ff00;">${item.fecha}</small>` 
+            : `<span>${item.titulo}</span>`;
+            
+        li.addEventListener('click', () => {
+            document.querySelectorAll('.articulo-item').forEach(i => i.classList.remove('activo-mgs'));
+            li.classList.add('activo-mgs');
+            cargarContenidoVisorDesdeServidor(item.slug);
+        });
+        elListaArticulosDinamica.appendChild(li);
+    });
+
+    const primerItem = elListaArticulosDinamica.querySelector('.articulo-item');
+    if (primerItem) primerItem.click();
 }
 
 function limpiarVisor() {
@@ -315,13 +371,96 @@ itemsCategorias.forEach(cat => {
     });
 });
 
+function inicializarFormularioPublicar() {
+    const formulario = document.getElementById("form-publicar-articulo");
+
+    if (!formulario) {
+        console.warn("SOP SYSTEM: El formulario de publicación no está activo en el DOM actual.");
+        return; 
+    }
+
+    formulario.removeEventListener("submit", manejarEnvioArticulo);
+    formulario.addEventListener("submit", manejarEnvioArticulo);
+}
+
+// 🟩 REEMPLAZA TODA LA FUNCIÓN MANEJADORA POR ESTA VERSIÓN:
+async function manejarEnvioArticulo(event) {
+
+console.log("===> SOP SYSTEM: EVENTO SUBMIT CAPTURADO CON ÉXITO ===");
+    event.preventDefault(); // Detiene la recarga de la página de forma inmediata
+
+    // Mapeo estricto con Mayúsculas para la coincidencia con el Modelo de C#
+    const articuloData = {
+        Titulo: document.querySelector('input[placeholder="Ej: Metal Gear SOLID"]')?.value.trim() || document.getElementById('input-pub-titulo')?.value.trim(),
+        Slug: document.querySelector('input[placeholder="Ej: metal-gear-solid"]')?.value.trim().toLowerCase() || document.getElementById('input-pub-slug')?.value.trim().toLowerCase(),
+        Categoria: document.querySelector('#form-publicar-articulo select')?.value || document.getElementById('select-pub-categoria')?.value,
+        Resumen: document.querySelector('input[placeholder="Breve introducción..."]')?.value.trim() || document.getElementById('input-pub-resumen')?.value.trim(),
+        Contenido: document.querySelector('textarea')?.value.trim() || document.getElementById('textarea-pub-contenido')?.value.trim()
+    };
+
+    // Control de Calidad en el Cliente
+    if (!articuloData.Titulo || !articuloData.Slug || !articuloData.Contenido) {
+        alert("SOP ERROR: Los campos Título, Slug y Contenido Completo son obligatorios.");
+        return; 
+    }
+
+    // Parámetros mandatorios para el Historial de Moderación en tu base de datos
+    const idUser = 4; 
+    const motivo = "Creación inicial de artículo SOP";
+
+    // Ubicamos el botón de submit para prevenir clicks dobles accidentales
+    const botonEnviar = document.getElementById("btn-enviar-articulo") || document.querySelector(".btn-submit-mgs");
+    if (botonEnviar) botonEnviar.disabled = true;
+
+    try {
+        console.log("SOP: Iniciando transmisión de propuesta asíncrona mediante api.js...");
+        
+        // Invocamos el método corregido de tu api.js pasándole los 3 argumentos requeridos
+const data = await api.publicarArticulo(articuloData, idUser, motivo);
+        
+        console.log("Respuesta central del sistema SOP:", data);
+
+        const selectorImagen = document.getElementById('input-pub-imagen');
+
+        if (selectorImagen && selectorImagen.files.length > 0) {
+            console.log("SOP: Recurso multimedia detectado. Esperando consolidación de base de datos...");
+            const archivoFisico = selectorImagen.files[0];
+
+            // 🟢 SQA FIX: Retrasamos la ejecución 500ms para evitar la colisión de Llave Foránea en SQL Server
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            console.log("SOP: Iniciando transmisión binaria de la imagen...");
+            // Invocamos el método de api.js pasándole el ticketId devuelto por C#
+            const dataImagen = await api.subirImagenArticulo(data.ticketId, archivoFisico);
+            console.log("Respuesta central del sistema SOP (Imagen):", dataImagen);
+        }
+        alert(`SOP SUCCESS: ${data.mensaje || "Operación transmitida con éxito a la base de datos."}`);
+        
+        // Limpiamos el formulario tras la persistencia exitosa
+        document.getElementById("form-publicar-articulo").reset();
+
+        // Regresar automáticamente al menú táctico si existe el botón de retorno
+        if (typeof btnPublicarVolver !== 'undefined' && btnPublicarVolver) {
+            btnPublicarVolver.click();
+        }
+    } catch (error) {
+        console.error("FALLO EN LA RED NEURAL SOP:", error);
+        alert(`SOP CRITICAL ERROR: ${error.message}`);
+    } finally {
+        // Reactivamos el botón pase lo que pase
+        if (botonEnviar) botonEnviar.disabled = false;
+    }
+}
+
 // ==========================================================================
 // MÓDULO 2: LÍNEA DE TIEMPO (TIMELINE)
+// ==========================================================================
 async function cargarTimelineDinamico() {
     if (!elListaNodosCronologicos) return;
     elListaNodosCronologicos.innerHTML = "";
 
     try {
+
         const registrosAPI = await api.obtenerCronologia();
 
         registrosAPI.forEach(evento => {
@@ -339,15 +478,11 @@ async function cargarTimelineDinamico() {
             li.addEventListener('click', () => {
                 document.querySelectorAll('.nodo-tiempo-item').forEach(n => n.classList.remove('activo-nodo'));
                 li.classList.add('activo-nodo');
-                
                 elTimelineTitulo.textContent = evento.tituloCorto.toUpperCase();
                 elTimelineFecha.textContent = `AÑO: ${evento.anio}`;
                 elTimelineDescripcion.textContent = evento.desc;
                 elTimelineImagen.src = evento.imagen || "./assets/img/placeholder-art.png";
-
-                if (elTextoEstadoTimeline) {
-                    elTextoEstadoTimeline.textContent = `Displaying historical archive for the year [${evento.anio}].`;
-                }
+                if (elTextoEstadoTimeline) elTextoEstadoTimeline.textContent = `Displaying historical archive for the year [${evento.anio}].`;
             });
             elListaNodosCronologicos.appendChild(li);
         });
@@ -356,7 +491,7 @@ async function cargarTimelineDinamico() {
         if (primerNodo) primerNodo.click();
 
     } catch (error) {
-        console.warn("[SOP CRITICAL TIMELINE]: Servidor inaccesible. Cargando línea de tiempo estática.");
+        console.warn("[SOP CRITICAL TIMELINE]: Servidor inaccesible. Cargando línea de tiempo estática.", error);
         elListaNodosCronologicos.innerHTML = "";
         
         Object.entries(baseDatosTimeline).forEach(([ano, datos]) => {
@@ -386,12 +521,14 @@ async function cargarTimelineDinamico() {
 }
 
 // ==========================================================================
-// MÓDULO 3: MAPA DE RELACIONES INTERACTIVO (GRAFO DE BACKEND)
+// MÓDULO 3: MAPA DE RELACIONES INTERACTIVO (GRAFO)
+// ==========================================================================
 async function actualizarMapaRelaciones() {
     if (!elTableroRelacionesGrid || !elRelationsMarcadorAnio) return;
     elTableroRelacionesGrid.innerHTML = `<div style="color:#7c7c7c; padding:20px; font-family:monospace; text-align:center; width:100%;">MAPEANDO CONEXIONES RED PATRIOTS...</div>`;
 
     try {
+        // 🟢 SOLUCIÓN SQA: Se integra api.js llamando a obtenerRelaciones()
         const datosGrafo = await api.obtenerRelaciones();
 
         if (!datosGrafo || !datosGrafo.nodes || datosGrafo.nodes.length === 0) {
@@ -400,7 +537,6 @@ async function actualizarMapaRelaciones() {
         }
 
         elTableroRelacionesGrid.innerHTML = "";
-        
         const nodoPrincipal = datosGrafo.nodes[0];
         elRelationsMarcadorAnio.textContent = `SOP GRAPH LAYER: UNIDAD [${nodoPrincipal.categoria.toUpperCase()}]`;
 
@@ -413,7 +549,6 @@ async function actualizarMapaRelaciones() {
         datosGrafo.nodes.forEach((nodo, index) => {
             let posX = centroX;
             let posY = centroY;
-            
             if (totalNodos > 1) {
                 const angulo = (index * 2 * Math.PI) / totalNodos;
                 posX = centroX + radioX * Math.cos(angulo);
@@ -438,7 +573,6 @@ async function actualizarMapaRelaciones() {
                 document.querySelectorAll('.nodo-personaje-dinamico').forEach(n => n.classList.remove('activo-nodo-neural'));
                 divNodo.classList.add('activo-nodo-neural');
                 
-                // Buscamos si el nodo actual tiene aristas (vínculos de Postman) hacia otros destinos
                 const conexionAsociada = datosGrafo.edges.find(e => e.origen === nodo.id);
                 let detalleConexionHTML = "";
                 
@@ -448,6 +582,7 @@ async function actualizarMapaRelaciones() {
                 }
 
                 try {
+                    // 🟢 SOLUCIÓN SQA: Se integra api.js para reutilizar la consulta del nodo específico
                     const artData = await api.obtenerArticuloPorSlug(nodo.slug);
                     if (elRelacionesFichaTitulo && elRelacionesFichaTexto && elRelacionesFichaImg) {
                         elRelacionesFichaTitulo.textContent = artData.titulo;
@@ -462,7 +597,6 @@ async function actualizarMapaRelaciones() {
                     }
                 }
             });
-
             elTableroRelacionesGrid.appendChild(divNodo);
         });
 
@@ -471,7 +605,6 @@ async function actualizarMapaRelaciones() {
 
     } catch (falla) {
         console.error("[SOP GRAFO COMPONENT FAIL]:", falla);
-        // En lugar de solo el mensaje de error, limpiamos y pintamos un nodo local de emergencia
         elTableroRelacionesGrid.innerHTML = "";
         
         const divNodoLocal = document.createElement('div');
@@ -487,38 +620,32 @@ async function actualizarMapaRelaciones() {
         elTableroRelacionesGrid.appendChild(divNodoLocal);
     }
 }
-
 // ==========================================================================
 // CONTROLADORES DE PANTALLAS (TRANSICIONES)
+// ==========================================================================
 
-// Transición inicial: Inicio -> Login
 if (btnStart) {
     btnStart.addEventListener('click', () => {
         vistaInicio.classList.replace('activa', 'oculta');
         vistaLogin.classList.replace('oculta', 'activa');
-        // Registramos el estado en el historial del navegador
         history.pushState({ pantalla: 'login' }, '', '#login');
     });
 }
 
-// Transición Login -> Menú Principal
 if (formLogin) {
     formLogin.addEventListener('submit', (e) => {
         e.preventDefault();
         vistaLogin.classList.replace('activa', 'oculta');
         vistaMenu.classList.replace('oculta', 'activa');
-        // Registramos el estado en el historial del navegador
         history.pushState({ pantalla: 'menu' }, '', '#menu');
     });
 }
 
-// Navegación Menú -> Enciclopedia
 if (btnIrEnciclopedia) {
     btnIrEnciclopedia.addEventListener('click', () => {
         vistaMenu.classList.replace('activa', 'oculta');
         vistaEnciclopedia.classList.replace('oculta', 'activa');
         filtrarYMostrarArticulos('all');
-        // Registramos el estado en el historial del navegador
         history.pushState({ pantalla: 'enciclopedia' }, '', '#enciclopedia');
     });
 }
@@ -527,18 +654,15 @@ if (btnVolverMenu) {
     btnVolverMenu.addEventListener('click', () => {
         vistaEnciclopedia.classList.replace('activa', 'oculta');
         vistaMenu.classList.replace('oculta', 'activa');
-        // Al regresar manualmente, empujamos el estado de menú
         history.pushState({ pantalla: 'menu' }, '', '#menu');
     });
 }
 
-// Navegación Menú -> Timeline
 if (btnIrTimeline) {
     btnIrTimeline.addEventListener('click', () => {
         vistaMenu.classList.replace('activa', 'oculta');
         vistaTimeline.classList.replace('oculta', 'activa');
         cargarTimelineDinamico();
-        // Registramos el estado en el historial del navegador
         history.pushState({ pantalla: 'timeline' }, '', '#timeline');
     });
 }
@@ -551,13 +675,11 @@ if (btnTimelineVolver) {
     });
 }
 
-// Navegación Menú -> Relaciones (SOP Layer)
 if (btnIrRelations) {
     btnIrRelations.addEventListener('click', () => {
         vistaMenu.classList.replace('activa', 'oculta');
         vistaRelations.classList.replace('oculta', 'activa');
         actualizarMapaRelaciones();
-        // Registramos el estado en el historial del navegador
         history.pushState({ pantalla: 'relations' }, '', '#relations');
     });
 }
@@ -570,12 +692,30 @@ if (btnRelationsVolver) {
     });
 }
 
+if (btnIrPublicar) {
+    btnIrPublicar.addEventListener('click', () => {
+        vistaMenu.classList.replace('activa', 'oculta');
+        vistaPublicar.classList.replace('oculta', 'activa');
+        inicializarFormularioPublicar();
+        history.pushState({ pantalla: 'publicar' }, '', '#publicar');
+    });
+}
+
+if (btnPublicarVolver) {
+    btnPublicarVolver.addEventListener('click', () => {
+        vistaPublicar.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
+}
 // ==========================================================================
-// GESTOR DE HISTORIAL INTEGRAL (POPSTATE CORREGIDO)
+// GESTOR DE HISTORIAL INTEGRAL (POPSTATE)
+// ==========================================================================
+
+
 window.addEventListener('popstate', (evento) => {
-    const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia, vistaTimeline, vistaRelations];
+    const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia, vistaTimeline, vistaRelations, vistaPublicar];
     
-    // Apagamos todas las pantallas de forma masiva y limpia
     todasLasPantallas.forEach(p => { 
         if(p) { 
             p.classList.remove('activa'); 
@@ -585,7 +725,6 @@ window.addEventListener('popstate', (evento) => {
 
     const pantallaDestino = evento.state?.pantalla;
 
-    // Evaluación estricta por casos de Hash de Estado
     if (pantallaDestino === 'login' && vistaLogin) {
         vistaLogin.classList.remove('oculta'); vistaLogin.classList.add('activa');
     } else if (pantallaDestino === 'menu' && vistaMenu) {
@@ -600,11 +739,15 @@ window.addEventListener('popstate', (evento) => {
         vistaRelations.classList.remove('oculta'); vistaRelations.classList.add('activa');
         actualizarMapaRelaciones();
     } else if (vistaInicio) {
-        // Estado por defecto (Inicio) blindado al final de la condicional
         vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
+    } else if (pantallaDestino === 'publicar' && vistaPublicar) {
+        vistaPublicar.classList.remove('oculta'); vistaPublicar.classList.add('activa');
+    } else if (vistaInicio) {
+        vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
+
+        
     }
 });
-
 window.addEventListener('DOMContentLoaded', () => {
     if (!history.state) {
         history.replaceState({ pantalla: 'inicio' }, '', '#inicio');
