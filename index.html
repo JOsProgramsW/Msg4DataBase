@@ -89,6 +89,10 @@
                         <i class="fa-solid fa-diagram-project icono-menu"></i>
                         <span class="opcion-texto">Relationship Chart</span>
                     </li>
+                    <li class="opcion-item" id="btn-ir-publicar">
+                        <i class="fa-solid fa-cloud-arrow-up icono-menu"></i>
+                        <span class="opcion-texto">Transmit Article (SOP)</span>
+                    </li>
                     <li class="opcion-item">
                         <i class="fa-solid fa-clock-rotate-left icono-menu"></i>
                         <span class="opcion-texto">History</span>
@@ -241,7 +245,9 @@
 
         <div class="contenedor-pantalla-completa el-mapa-red">
             <div class="tablero-relaciones-dinamico">
-                <div class="tablero-relaciones-grid"></div>
+                <svg id="lineas-relaciones-svg" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 1;"></svg>
+                
+                <div class="tablero-relaciones-grid" style="position: relative; z-index: 2;"></div>
             </div>
 
             <div class="panel-visor-relaciones-inferior" id="visor-relaciones-ficha">
@@ -254,7 +260,9 @@
                     <p id="relaciones-ficha-texto">Haga clic sobre un agente o facción del mapa neural para extraer su registro directo del archivo SOP.</p>
                 </div>
             </div>
-        </div> <div class="barra-controles-mgs">
+        </div> 
+        
+        <div class="barra-controles-mgs">
             <div id="btn-relations-volver" style="cursor: pointer;"><span class="control-btn">L1</span> MENU PRINCIPAL</div>
             <div class="controles-navegacion-temporal">
                 <span id="btn-relations-prev" style="cursor: pointer;" class="control-btn-flecha">&lt; ANTERIOR</span>
@@ -262,6 +270,53 @@
                 <span id="btn-relations-next" style="cursor: pointer;" class="control-btn-flecha">SIGUIENTE &gt;</span>
             </div>
             <div>CONFIRM <span class="control-btn">R1</span></div>
+        </div>
+    </section>
+
+    <section id="vista-publicar" class="pantalla-sistema oculta">
+        <div class="marco-digital"></div>
+        <div class="marca-agua-bg">SOP / TRANSMIT</div>
+
+        <div class="header-global-enciclopedia">
+            <h1 class="titulo-original-mgs">SOP: Transmit Article</h1>
+        </div>
+        
+        <div class="contenedor-pantalla-completa base-formulario-mgs">
+            <p style="font-family: monospace; color: #020202; padding: 10px 0;">Completa los campos para transmitir la información a la red.</p>
+            
+            <form id="form-publicar-articulo" style="display: flex; flex-direction: column; gap: 5px; max-width: 600px;">
+                <label style="font-family: monospace; color: #fff;">Título del Artículo:</label>
+                <input type="text" id="input-pub-titulo" required placeholder="Ej: Metal Gear SOLID" style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace;">
+                
+                <label style="font-family: monospace; color: #fff;">Slug único (ID para URL):</label>
+                <input type="text" id="input-pub-slug" required placeholder="Ej: metal-gear-solid" style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace;">
+                
+                <label style="font-family: monospace; color: #fff;">Categoría:</label>
+                <select id="select-pub-categoria" style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace;">
+    <option value="Personajes">Personajes</option>
+    <option value="Militar">Militar</option>
+    <option value="Organizaciones">Organizaciones</option>
+    <option value="Eventos">Eventos</option>
+    <option value="Ubicaciones">Ubicaciones</option>
+                </select>
+                
+                <label style="font-family: monospace; color: #fff;">Resumen Corto:</label>
+                <input type="text" id="input-pub-resumen" required placeholder="Breve introducción..." style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace;">
+                
+                <label style="font-family: monospace; color: #fff;">Contenido Completo:</label>
+                <textarea id="textarea-pub-contenido" rows="5" required placeholder="Escribe el artículo detallado aquí..." style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace; resize: none;"></textarea>
+
+                <label style="font-family: monospace; color: #fff;">Imagen del Artículo (Opcional):</label>
+                <input type="file" id="input-pub-imagen" accept="image/*" style="background: #111; color: #fff; border: 1px solid #333; padding: 8px; font-family: monospace;">
+                
+                <button type="submit" id="btn-enviar-articulo" class="btn-submit-mgs" style="margin-top: 10px; padding: 10px; cursor: pointer;">Transmitir Artículo</button>
+            </form>
+        </div>
+        
+        <div class="barra-controles-mgs">
+            <div id="btn-publicar-volver" style="cursor: pointer;"><span class="control-btn">L1</span> VOLVER AL MENÚ</div>
+            <div>SELECT : HELP</div>
+            <div>ENVIAR <span class="control-btn">R1</span></div>
         </div>
     </section>
 
