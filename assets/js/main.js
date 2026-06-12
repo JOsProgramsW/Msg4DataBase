@@ -10,7 +10,10 @@ const vistaMenu = document.getElementById('vista-menu');
 const vistaEnciclopedia = document.getElementById('vista-enciclopedia');
 const vistaTimeline = document.getElementById('vista-timeline');
 const vistaRelations = document.getElementById('vista-relations'); 
+const vistaPublicar = document.getElementById('vista-publicar');
+const vistaAdministrador = document.getElementById('vista-administrador');
 
+// 2. Captura de Botones de Navegación General
 const btnStart = document.getElementById('btn-start');
 const formLogin = document.getElementById('form-login');
 const btnIrEnciclopedia = document.getElementById('btn-ir-enciclopedia');
@@ -19,15 +22,19 @@ const btnIrTimeline = document.getElementById('btn-ir-timeline');
 const btnTimelineVolver = document.getElementById('btn-timeline-volver');
 const btnIrRelations = document.getElementById('btn-ir-relations'); 
 const btnRelationsVolver = document.getElementById('btn-relations-volver'); 
+const btnIrPublicar = document.getElementById('btn-ir-publicar');
+const btnPublicarVolver = document.getElementById('btn-publicar-volver');
+const btnIrAdministrador = document.getElementById('btn-ir-administrador');
 
+// 3. Captura de Elementos Visores de la Enciclopedia
 const elArticuloTitulo = document.getElementById('articulo-titulo');
 const elArticuloImagen = document.getElementById('articulo-imagen');
 const elArticuloDescripcion = document.getElementById('articulo-descripcion');
-
 const elListaArticulosDinamica = document.getElementById('lista-dinamica-articulos');
 const elTextoEstado = document.getElementById('texto-estado-subpantalla');
 const itemsCategorias = document.querySelectorAll('.categoria-item');
 
+// 4. Captura de Elementos Visores del Timeline
 const elTimelineTitulo = document.getElementById('timeline-titulo');
 const elTimelineImagen = document.getElementById('timeline-imagen');
 const elTimelineFecha = document.getElementById('timeline-fecha');
@@ -35,19 +42,16 @@ const elTimelineDescripcion = document.getElementById('timeline-descripcion');
 const elListaNodosCronologicos = document.getElementById('lista-nodos-cronologicos');
 const elTextoEstadoTimeline = document.getElementById('texto-estado-timeline');
 
+// 5. Captura de Elementos Visores de Relaciones
 const elTableroRelacionesGrid = document.querySelector('.tablero-relaciones-grid');
 const elRelationsMarcadorAnio = document.getElementById('relations-marcador-anio');
-const btnRelationsPrev = document.getElementById('btn-relations-prev');
-const btnRelationsNext = document.getElementById('btn-relations-next');
-
 const elRelacionesFichaImg = document.getElementById('relaciones-ficha-img');
 const elRelacionesFichaTitulo = document.getElementById('relaciones-ficha-titulo');
 const elRelacionesFichaTexto = document.getElementById('relaciones-ficha-texto');
 
-const vistaPublicar = document.getElementById('vista-publicar');
-const btnIrPublicar = document.getElementById('btn-ir-publicar'); // Suponiendo que pones este botón en tu vistaMenu
-const btnPublicarVolver = document.getElementById('btn-publicar-volver');
-const formPublicar = document.getElementById('form-publicar-articulo');
+// Variables globales de control para retener temporalmente los IDs del Administrador
+let adminIdArtSeleccionado = null;
+let adminIdHistSeleccionado = null;
 
 // Control cronológico de la vista de relaciones (Inicia en hito 0: Año 1922)
 let indiceCronologicoRelaciones = 0;
@@ -214,7 +218,7 @@ async function filtrarYMostrarArticulos(categoria) {
     let articulosParaRenderizar = [];
 
     try {
-        // 🟢 SOLUCIÓN SQA: Se integra api.js eliminando el fetch manual a API_URL
+       
         const articulosAPI = await api.obtenerArticulos(); 
         
         articulosParaRenderizar = articulosAPI.map(art => ({
@@ -292,7 +296,6 @@ async function cargarContenidoVisorDesdeServidor(slug) {
             if (articuloAPI.artImagenes && articuloAPI.artImagenes.length > 0) {
                 const imgPrincipal = articuloAPI.artImagenes.find(img => img.esPrincipal) || articuloAPI.artImagenes[0];
                 
-                // 🟢 SQA SANITIZACIÓN: Nos aseguramos de obtener la RAÍZ limpia del servidor (sin el '/api')
                 let raizServidor = api.API_BASE_URL;
                 if (raizServidor.endsWith('/api')) {
                     raizServidor = raizServidor.replace('/api', '');
@@ -383,7 +386,6 @@ function inicializarFormularioPublicar() {
     formulario.addEventListener("submit", manejarEnvioArticulo);
 }
 
-// 🟩 REEMPLAZA TODA LA FUNCIÓN MANEJADORA POR ESTA VERSIÓN:
 async function manejarEnvioArticulo(event) {
 
 console.log("===> SOP SYSTEM: EVENTO SUBMIT CAPTURADO CON ÉXITO ===");
@@ -426,11 +428,10 @@ const data = await api.publicarArticulo(articuloData, idUser, motivo);
             console.log("SOP: Recurso multimedia detectado. Esperando consolidación de base de datos...");
             const archivoFisico = selectorImagen.files[0];
 
-            // 🟢 SQA FIX: Retrasamos la ejecución 500ms para evitar la colisión de Llave Foránea en SQL Server
             await new Promise(resolve => setTimeout(resolve, 500));
 
             console.log("SOP: Iniciando transmisión binaria de la imagen...");
-            // Invocamos el método de api.js pasándole el ticketId devuelto por C#
+
             const dataImagen = await api.subirImagenArticulo(data.ticketId, archivoFisico);
             console.log("Respuesta central del sistema SOP (Imagen):", dataImagen);
         }
@@ -620,6 +621,174 @@ async function actualizarMapaRelaciones() {
         elTableroRelacionesGrid.appendChild(divNodoLocal);
     }
 }
+
+// ==========================================================================
+// 🟢 NUEVO MÓDULO 4: LÓGICA DE CONTROL DEL PANEL DE ADMINISTRACIÓN
+// ==========================================================================
+
+async function inicializarPanelAdministrador() {
+    const listaUI = document.getElementById("lista-pendientes-admin");
+    if (!listaUI) return;
+    
+    listaUI.innerHTML = "<li style='color:#8b967a; padding:10px; font-family:monospace;'>CONNECTING TO CENTRAL GATEWAY...</li>";
+
+    try {
+        const pendientes = await api.obtenerPendientes();
+        listaUI.innerHTML = "";
+
+        if (!pendientes || pendientes.length === 0) {
+            listaUI.innerHTML = "<li class='vacio-mgs' style='color:#7c7c7c; padding:10px; font-family:monospace;'>NO HAY PROPUESTAS PENDIENTES DE AUDITORÍA</li>";
+            return;
+        }
+
+      pendientes.forEach(p => {
+            const nav = p.idArtNavigation || p.IdArtNavigation;
+            const tituloArt = nav ? (nav.titulo || nav.Titulo) : "Artículo sin Título";
+            const idUsuario = p.idUser || p.IdUser;
+            const motivoCambio = p.motivoChange || p.motivoCambio || p.MotivoCambio || "Sin motivo";
+            const idArticulo = p.idArt || p.IdArt;
+            const idHistorial = p.idHist || p.IdHist;
+            const slugArt = nav ? (nav.slug || nav.Slug) : "";
+            
+            // 🟢 NUEVO: Detectar el estado para poner un color estratégico
+            const estadoReal = p.estado || "Pendiente";
+            let colorEstado = "#aa862c"; // Amarillo/Dorado para Pendiente
+            if (estadoReal === "Aprobado") {
+                colorEstado = "#00ff00"; // Verde para los ya aprobados
+            }
+
+            const li = document.createElement("li");
+            li.className = "articulo-item"; 
+            li.style.cursor = "pointer";
+            
+            // 🟢 Agregamos el Badge del ESTADO dinámicamente en el HTML
+            li.innerHTML = `
+                <strong>${tituloArt.toUpperCase()}</strong><br>
+                <small style="color: ${colorEstado}; font-size:11px;">
+                    STATUS: ${estadoReal.toUpperCase()} | UID: ${idUsuario}
+                </small>
+            `;
+            
+            li.onclick = () => {
+                document.querySelectorAll('#lista-pendientes-admin .articulo-item').forEach(i => i.classList.remove('activo-mgs'));
+                li.classList.add('activo-mgs');
+                
+                adminIdArtSeleccionado = idArticulo;
+                adminIdHistSeleccionado = idHistorial;
+                adminSlugSeleccionado = slugArt;
+
+                cargarPropuestaEnFormulario({
+                    titulo: tituloArt,
+                    categoria: nav ? (nav.categoria || nav.Categoria) : "General",
+                    resumen: nav ? (nav.resumen || nav.Resumen) : "",
+                    contenido: nav ? (nav.contenido || nav.Contenido) : ""
+                });
+            };
+            
+            listaUI.appendChild(li);
+        });
+    } catch (err) {
+        console.error("Error en panel admin:", err);
+        listaUI.innerHTML = `<li style='color:#ff4a4a; padding:10px; font-family:monospace;'>ERROR AL CONECTAR CON PASARELA CENTRAL SOP</li>`;
+    }
+}
+
+function cargarPropuestaEnFormulario(datosNormalizados) {
+    // Tolerancia doble de IDs para evitar desconfiguraciones en tu HTML
+    const elTitulo = document.getElementById("admin-titulo") || document.getElementById("publicar-titulo");
+    const elCategoria = document.getElementById("admin-categoria") || document.getElementById("publicar-categoria");
+    const elResumen = document.getElementById("admin-resumen") || document.getElementById("publicar-resumen");
+    const elContenido = document.getElementById("admin-contenido") || document.getElementById("publicar-contenido");
+
+    if (elTitulo) elTitulo.value = datosNormalizados.titulo;
+    if (elCategoria) elCategoria.value = datosNormalizados.categoria;
+    if (elResumen) elResumen.value = datosNormalizados.resumen;
+    if (elContenido) elContenido.value = datosNormalizados.contenido;
+}
+
+async function procesarAccionAdmin(accion) {
+    if (!adminIdArtSeleccionado || !adminIdHistSeleccionado) {
+        alert("SOP SYSTEM: Seleccione una propuesta de la lista izquierda primero.");
+        return;
+    }
+
+    const elTitulo = document.getElementById("admin-titulo") || document.getElementById("publicar-titulo");
+    const elCategoria = document.getElementById("admin-categoria") || document.getElementById("publicar-categoria");
+    const elResumen = document.getElementById("admin-resumen") || document.getElementById("publicar-resumen");
+    const elContenido = document.getElementById("admin-contenido") || document.getElementById("publicar-contenido");
+    const elMotivo = document.getElementById("admin-motivo") || document.getElementById("publicar-motivo");
+
+    const motivoText = elMotivo && elMotivo.value.trim() ? elMotivo.value.trim() : "Validación de Integridad SOP.";
+    
+    const slugSeguro = adminSlugSeleccionado || (elTitulo ? elTitulo.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') : "slug-articulo");
+
+    // 🚨 DUPLICIDAD DE PROPIEDADES (Pase de Contingencia Extrema):
+    // Enviamos tanto en PascalCase como en camelCase para que el deserializador de C#
+    // capture los valores obligatorios sin importar su configuración interna.
+    const datosModificados = {
+        // Versión con Mayúsculas (Modelo C# clásico)
+        IdArt: parseInt(adminIdArtSeleccionado, 10),
+        Titulo: elTitulo ? elTitulo.value.trim() : "Artículo sin Título",
+        Slug: String(slugSeguro).trim(),
+        Categoria: elCategoria ? elCategoria.value : "Otros",
+        Resumen: elResumen ? elResumen.value.trim() : "Sin resumen.",
+        Contenido: elContenido ? elContenido.value.trim() : "Sin contenido.",
+
+        // Versión con Minúsculas (Por si el serializador JSON del backend exige camelCase)
+        idArt: parseInt(adminIdArtSeleccionado, 10),
+        titulo: elTitulo ? elTitulo.value.trim() : "Artículo sin Título",
+        slug: String(slugSeguro).trim(),
+        categoria: elCategoria ? elCategoria.value : "Otros",
+        resumen: elResumen ? elResumen.value.trim() : "Sin resumen.",
+        contenido: elContenido ? elContenido.value.trim() : "Sin contenido."
+    };
+
+    console.log("SOP: Enviando payload blindado al PUT ->", datosModificados);
+
+    try {
+        if (accion === 'aprobado') {
+            await api.modificarArticulo(adminIdArtSeleccionado, datosModificados);
+            await api.resolverPropuesta(adminIdHistSeleccionado, "Aprobado", motivoText);
+            alert("SOP SUCCESS: Propuesta aprobada y publicada con éxito.");
+
+        } else if (accion === 'modificar') {
+            await api.modificarArticulo(adminIdArtSeleccionado, datosModificados);
+            alert("SOP SUCCESS: Cambios intermedios guardados.");
+
+        } else if (accion === 'eliminar') {
+            if (confirm("🚨 ¿Desea purgar este artículo del sistema central?")) {
+                await api.eliminarArticulo(adminIdArtSeleccionado);
+                alert("SOP SUCCESS: Artículo purgado.");
+            } else {
+                return;
+            }
+        }
+
+        // ==========================================================
+        // 🛠️ EXPLICACIÓN DE MEJORA: CONTROL DE FLUJO ASÍNCRONO Y LIMPIEZA
+        // ==========================================================
+        
+        // 1. Limpiamos los campos del formulario derecho para no dejar rastros de datos viejos
+        if (elTitulo) elTitulo.value = "";
+        if (elResumen) elResumen.value = "";
+        if (elContenido) elContenido.value = "";
+        if (elMotivo) elMotivo.value = "";
+
+        // 2. Reseteamos las referencias de selección del artículo procesado
+        adminIdArtSeleccionado = null;
+        adminIdHistSeleccionado = null;
+        adminSlugSeleccionado = "";
+        
+        // 3. 🔥 AGREGADO: Usamos 'await' para forzar a JavaScript a esperar que la API responda
+        // y que vuelva a pintar los artículos vigentes en el contenedor izquierdo.
+        await inicializarPanelAdministrador();
+
+    } catch (err) {
+        console.error("SOP CRITICAL FAIL:", err);
+        alert(`SOP AUDIT ERROR: ${err.message}`);
+    }
+}
+
 // ==========================================================================
 // CONTROLADORES DE PANTALLAS (TRANSICIONES)
 // ==========================================================================
@@ -708,13 +877,31 @@ if (btnPublicarVolver) {
         history.pushState({ pantalla: 'menu' }, '', '#menu');
     });
 }
+
+if (btnIrAdministrador) {
+    btnIrAdministrador.addEventListener('click', () => {
+        vistaMenu.classList.replace('activa', 'oculta');
+        if (vistaAdministrador) vistaAdministrador.classList.replace('oculta', 'activa');
+        inicializarPanelAdministrador();
+        history.pushState({ pantalla: 'administrador' }, '', '#administrador');
+    });
+}
+
+const btnAdminVolver = document.getElementById('btn-admin-volver');
+if (btnAdminVolver) {
+    btnAdminVolver.addEventListener('click', () => {
+        if (vistaAdministrador) vistaAdministrador.classList.replace('activa', 'oculta');
+        vistaMenu.classList.replace('oculta', 'activa');
+        history.pushState({ pantalla: 'menu' }, '', '#menu');
+    });
+}
+
 // ==========================================================================
 // GESTOR DE HISTORIAL INTEGRAL (POPSTATE)
 // ==========================================================================
 
-
 window.addEventListener('popstate', (evento) => {
-    const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia, vistaTimeline, vistaRelations, vistaPublicar];
+    const todasLasPantallas = [vistaInicio, vistaLogin, vistaMenu, vistaEnciclopedia, vistaTimeline, vistaRelations, vistaPublicar, vistaAdministrador];
     
     todasLasPantallas.forEach(p => { 
         if(p) { 
@@ -738,16 +925,16 @@ window.addEventListener('popstate', (evento) => {
     } else if (pantallaDestino === 'relations' && vistaRelations) {
         vistaRelations.classList.remove('oculta'); vistaRelations.classList.add('activa');
         actualizarMapaRelaciones();
-    } else if (vistaInicio) {
-        vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
     } else if (pantallaDestino === 'publicar' && vistaPublicar) {
         vistaPublicar.classList.remove('oculta'); vistaPublicar.classList.add('activa');
+    } else if (pantallaDestino === 'administrador' && vistaAdministrador) {
+        vistaAdministrador.classList.remove('oculta'); vistaAdministrador.classList.add('activa');
+        inicializarPanelAdministrador();
     } else if (vistaInicio) {
-        vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');
-
-        
+        vistaInicio.classList.remove('oculta'); vistaInicio.classList.add('activa');  
     }
 });
+
 window.addEventListener('DOMContentLoaded', () => {
     if (!history.state) {
         history.replaceState({ pantalla: 'inicio' }, '', '#inicio');

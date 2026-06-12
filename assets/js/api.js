@@ -3,27 +3,37 @@
 // ==========================================================================
 // API SERVICE LAYER: PUENTE DE CONEXIÓN CON BACKEND ASP.NET CORE
 // ======================================================================
-const API_BASE_URL = "https://localhost:7157/api"; // Asegúrate de que coincida con tu puerto de IIS/Kestrel
-
 const api = {
     
-    // 🟢 SQA FIX: Exponemos la constante dentro del objeto api para que main.js la consuma
+    // URL Base única del servidor de desarrollo ASP.NET Core
     API_BASE_URL: "https://localhost:7157", 
+
+    /**
+     * Auxiliar interno para construir las URLs de forma limpia.
+     * Si el endpoint ya contiene una ruta completa, respeta la base general de la API.
+     */
+    _obtenerApiUrl(endpoint, esControladorArticulos = true) {
+        if (esControladorArticulos) {
+            return `${this.API_BASE_URL}/api/Articulos/${endpoint.replace(/^\//, '')}`;
+        }
+        return `${this.API_BASE_URL}/api/${endpoint.replace(/^\//, '')}`;
+    },
     
     /**
-     * Recupera el listado completo de artículos registrados en el servidor.
+     * Recupera el listado completo de artículos registrados (Usado por la Enciclopedia).
      */
     async obtenerArticulos() {
-        const respuesta = await fetch(`${API_BASE_URL}/articulos`);
+        // SQA FIX: Corrección del bug 'this.this'
+        const respuesta = await fetch(this._obtenerApiUrl(""));
         if (!respuesta.ok) throw new Error(`HTTP Error: ${respuesta.status}`);
         return await respuesta.json();
     },
 
     /**
-     * Recupera la información extendida de un artículo mediante su slug.
+     * Recupera la información extendida de un artículo mediante su slug (Usado por la Enciclopedia).
      */
     async obtenerArticuloPorSlug(slug) {
-        const respuesta = await fetch(`${API_BASE_URL}/articulos/slug/${slug}`);
+        const respuesta = await fetch(this._obtenerApiUrl(`slug/${slug}`));
         if (!respuesta.ok) throw new Error(`HTTP Error: ${respuesta.status}`);
         return await respuesta.json();
     },
@@ -32,7 +42,8 @@ const api = {
      * Recupera los hitos cronológicos de la saga desde el backend.
      */
     async obtenerCronologia() {
-        const respuesta = await fetch(`${API_BASE_URL}/cronologia`);
+        // SQA FIX: Ruta dirigida al controlador independiente de cronología
+        const respuesta = await fetch(this._obtenerApiUrl("cronologia", false));
         if (!respuesta.ok) throw new Error(`HTTP Error: ${respuesta.status}`);
         return await respuesta.json();
     },
@@ -41,41 +52,30 @@ const api = {
      * Recupera la estructura relacional de grafos (nodes y edges).
      */
     async obtenerRelaciones() {
-        const respuesta = await fetch(`${API_BASE_URL}/relaciones`);
+        // SQA FIX: Ruta dirigida al controlador independiente de relaciones
+        const respuesta = await fetch(this._obtenerApiUrl("relaciones", false));
         if (!respuesta.ok) throw new Error(`HTTP Error: ${respuesta.status}`);
         return await respuesta.json();
     },
 
     // ==========================================================================
-    // NUEVOS MÉTODOS: ESCRITURA Y GESTIÓN (USUARIO / ADMINISTRADOR)
+    // MÉTODOS DE ESCRITURA Y GESTIÓN (USUARIO / ADMINISTRADOR)
     // ==========================================================================
 
-    /**
-     * Envía un nuevo artículo propuesto por un usuario al backend.
-     * @param {Object} articulo - Objeto con Titulo, Slug, Categoria, Resumen y Contenido.
-     * @param {number} idUser - ID del usuario que propone la transmisión.
-     * @param {string} motivo - Descripción o bitácora del envío.
-     */
     async publicarArticulo(articuloData, idUser, motivo) {
-        // 🧹 LIMPIEZA DE CATEGORÍA: Si contiene espacios o paréntesis, toma solo la primera palabra
-        let categoriaLimpia = articuloData.Categoria;
-
         const cuerpoPeticion = {
             Titulo: articuloData.Titulo,
             Slug: articuloData.Slug,
-            Categoria: categoriaLimpia, 
+            Categoria: articuloData.Categoria, 
             Resumen: articuloData.Resumen,
             Contenido: articuloData.Contenido,
             IdUser: idUser, 
             Motivo: motivo || "Propuesta inicial de sistema"
         };
 
-        // 🟢 SQA FIX: Se reemplaza la URL explícita por la constante dinámica template string
-        const response = await fetch(`${API_BASE_URL}/Articulos/proponer`, {
+        const response = await fetch(this._obtenerApiUrl("proponer"), {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(cuerpoPeticion)
         });
 
@@ -83,7 +83,6 @@ const api = {
             const errorTexto = await response.text();
             throw new Error(errorTexto);
         }
-
         return await response.json();
     },
 
@@ -91,8 +90,7 @@ const api = {
         const formData = new FormData();
         formData.append("archivo", archivoFisico); 
 
-        // 🟢 SQA FIX: Se reemplaza la URL explícita por la constante dinámica template string
-        const response = await fetch(`${API_BASE_URL}/Articulos/subir-imagen-articulo/${idArticulo}`, {
+        const response = await fetch(this._obtenerApiUrl(`subir-imagen-articulo/${idArticulo}`), {
             method: "POST",
             body: formData 
         });
@@ -101,22 +99,23 @@ const api = {
             const errorTexto = await response.text();
             throw new Error(`Fallo en el transporte de imágenes: ${errorTexto}`);
         }
-
         return await response.json(); 
     },
 
-    /**
-     * Actualiza el estado o la información de un artículo (Aceptar/Modificar).
-     * @param {string|number} id - Identificador único del artículo.
-     * @param {Object} datosActualizados - Objeto con los campos modificados (ej: { aprobado: true }).
-     */
     async modificarArticulo(id, datosActualizados) {
-        const respuesta = await fetch(`${API_BASE_URL}/articulos/${id}`, {
+        const cuerpoCsharp = {
+            IdArt: parseInt(id),
+            Titulo: datosActualizados.titulo,
+            Slug: datosActualizados.slug,
+            Categoria: datosActualizados.categoria,
+            Resumen: datosActualizados.resumen,
+            Contenido: datosActualizados.contenido
+        };
+
+        const respuesta = await fetch(this._obtenerApiUrl(`${id}`), {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datosActualizados)
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cuerpoCsharp)
         });
         if (!respuesta.ok) {
             const errorTexto = await respuesta.text();
@@ -125,12 +124,8 @@ const api = {
         return respuesta.status === 204 ? null : await respuesta.json();
     },
 
-    /**
-     * Elimina permanentemente un artículo de la base de datos (Rol Admin).
-     * @param {string|number} id - Identificador único del artículo.
-     */
     async eliminarArticulo(id) {
-        const respuesta = await fetch(`${API_BASE_URL}/articulos/${id}`, {
+        const respuesta = await fetch(this._obtenerApiUrl(`${id}`), {
             method: 'DELETE'
         });
         if (!respuesta.ok) {
@@ -138,5 +133,41 @@ const api = {
             throw new Error(`HTTP ${respuesta.status}: ${errorTexto}`);
         }
         return true;
+    },
+
+    async obtenerPendientes() {
+        const respuesta = await fetch(this._obtenerApiUrl("pendientes"));
+        if (!respuesta.ok) throw new Error(`HTTP Error工程: ${respuesta.status}`);
+        return await respuesta.json();
+    },
+
+async resolverPropuesta(idHistorial, estado, motivo) {
+    if (!idHistorial || idHistorial === "undefined") {
+        throw new Error("El ID de historial provisto no es válido.");
     }
+
+    // 🚨 CORRECCIÓN AQUÍ: Se añade /api/ a la ruta para que coincida con el [Route] de C#
+    const url = `https://localhost:7157/api/Historial/resolver/${idHistorial}`; 
+
+    console.log("SOP AUDIT: Transmitiendo resolución de auditoría a:", url);
+    
+    const respuesta = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            idHist: parseInt(idHistorial, 10),
+            estado: estado,       // Envía "Aprobado"
+            motivoCambio: motivo  // Envía el texto de la revisión
+        })
+    });
+
+    if (!respuesta.ok) {
+        const errorTexto = await respuesta.text();
+        throw new Error(`HTTP ${respuesta.status}: ${errorTexto}`);
+    }
+
+    return respuesta.status === 204 ? null : await respuesta.json();
+}
 };
