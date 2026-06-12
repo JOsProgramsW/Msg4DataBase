@@ -730,3 +730,222 @@ font-size: 1.25rem;
     box-shadow: 0 0 15px rgba(0, 255, 0, 0.6) !important; /* Resplandor táctico de activación */
     cursor: pointer;
 }
+
+#vista-administrador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- CABECERA INTEGRADA AL ESTILO DE LA ENCICLOPEDIA --- */
+.admin-header-container {
+    width: 100%;
+    padding: 35px 40px 0 40px; /* Alineación limpia con los márgenes del marco digital */
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+}
+
+/* Marca de agua superior translúcida */
+.admin-marca-agua-texto {
+    font-family: monospace;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.15); /* Tono grisáceo sutil idéntico a la enciclopedia */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: -3px;
+}
+
+/* Título principal con la tipografía mate del juego */
+.admin-titulo-modulo {
+    font-family: 'Interstate', 'Share Tech Mono', sans-serif; /* Forzar la fuente del sistema */
+    color: rgba(60, 65, 55, 0.85); /* Gris militar translúcido en lugar de blanco plano */
+    font-size: 34px;
+    font-weight: bold;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    border: none;
+    padding: 0;
+}
+
+/* --- CONTENEDOR DE TABLAS (HORIZONTAL Y SIMÉTRICO) --- */
+.admin-split-container {
+    display: flex; /* Mantiene tus dos paneles lado a lado */
+    gap: 24px;
+    box-sizing: border-box;
+    padding: 20px 40px 35px 40px; /* Ajuste perimetral interno respecto al marco */
+    
+    /* CONTROL DE DESBORDE: Toma el alto total interno y resta el header y footer */
+    height: calc(100% - 130px); 
+    
+    position: relative;
+    z-index: 5;
+    align-items: stretch;
+}
+
+/* --- TABLA IZQUIERDA: LISTA DE PROPUESTAS --- */
+.admin-panel-lista {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #333;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Scroll interno si la lista crece, sin romper la pantalla */
+    box-sizing: border-box;
+}
+
+/* --- TABLA DERECHA: FORMULARIO DE EVALUACIÓN --- */
+.admin-panel-formulario {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #333;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Protege el formulario contra desbordes verticales */
+    box-sizing: border-box;
+}
+
+/* --- SUBTÍTULOS E ICONOS INTERNOS --- */
+.admin-panel-subtitulo {
+    font-family: monospace;
+    color: #fff;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.admin-panel-subtitulo i {
+    color: #8b967a;
+    margin-right: 5px;
+}
+
+/* --- MENSAJES DE ERROR DE LA PASARELA --- */
+.admin-texto-error {
+    font-family: monospace;
+    color: #ff4a4a;
+    font-size: 12px;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.admin-lista-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* --- MAQUETACIÓN DEL FORMULARIO INTERNO --- */
+.admin-formulario-flujo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.admin-grupo-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-grupo-campo label {
+    font-family: monospace;
+    color: #8b967a;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.admin-grupo-campo .label-feedback {
+    color: #aa862c; /* Tono dorado/alerta táctica */
+}
+
+/* --- CONTROLES DE INPUTS Y TEXTAREAS --- */
+.admin-input-control {
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.admin-input-control:focus {
+    border-color: #8b967a;
+}
+
+.admin-select-control {
+    cursor: pointer;
+}
+
+.admin-textarea-control {
+    resize: none;
+}
+
+/* --- CONTENEDOR Y BOTONES DE ACCIÓN (APPROVE / SAVE / DELETE) --- */
+.admin-contenedor-botones {
+    display: flex;
+    gap: 10px;
+    margin-top: auto; /* Empuja los botones siempre al fondo de la caja gris */
+    padding-top: 10px;
+}
+
+.btn-admin-action {
+    flex: 1;
+    cursor: pointer;
+    padding: 10px;
+    font-weight: bold;
+    font-family: monospace;
+    border: 1px solid transparent;
+}
+
+.btn-approve {
+    background: #2a472a;
+    border-color: #3d663d;
+    color: #fff;
+}
+
+.btn-approve:hover {
+    background: #345934;
+}
+
+.btn-save {
+    background: #474722;
+    border-color: #666633;
+    color: #fff;
+}
+
+.btn-save:hover {
+    background: #57572a;
+}
+
+.btn-delete {
+    background: #4d2626;
+    border-color: #733939;
+    color: #fff;
+}
+
+.btn-delete:hover {
+    background: #5e2e2e;
+}
+

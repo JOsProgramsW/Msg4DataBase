@@ -93,6 +93,10 @@
                         <i class="fa-solid fa-cloud-arrow-up icono-menu"></i>
                         <span class="opcion-texto">Transmit Article (SOP)</span>
                     </li>
+                    <li class="opcion-item" id="btn-ir-administrador">
+            <i class="fa-solid fa-user-shield icono-menu"></i>
+            <span class="opcion-texto">SOP Administrator Control</span>
+        </li>
                     <li class="opcion-item">
                         <i class="fa-solid fa-clock-rotate-left icono-menu"></i>
                         <span class="opcion-texto">History</span>
@@ -320,7 +324,86 @@
         </div>
     </section>
 
-    <script src="./assets/js/main.js"></script>
+<section id="vista-administrador" class="pantalla-sistema oculta">
+    <div class="marco-digital"></div>
+    <div class="marca-agua-bg">SOP / CONTROL AUDIT</div>
+
+    <div class="admin-header-container">
+        <h1 class="admin-titulo-modulo">SOP: Auditoría y Contenidos</h1>
+    </div>
+
+    <div class="contenedor-pantalla-completa admin-split-container">
+        
+        <div class="admin-panel-lista">
+            <h3 class="admin-panel-subtitulo">
+                <i class="fa-solid fa-folder-open"></i> PROPUESTAS PENDIENTES
+            </h3>
+            
+            <p id="error-pasarela" class="admin-texto-error">
+                <i class="fa-solid fa-triangle-exclamation"></i> ERROR AL CONECTAR CON PASARELA CENTRAL SOP
+            </p>
+            
+            <ul id="lista-pendientes-admin" class="lista-mgs admin-lista-items">
+                </ul>
+        </div>
+
+        <div class="admin-panel-formulario">
+            <h3 class="admin-panel-subtitulo">
+                <i class="fa-solid fa-file-pen"></i> FORMULARIO DE EVALUACIÓN
+            </h3>
+
+            <form id="form-evaluacion-admin" class="admin-formulario-flujo">
+                <input type="hidden" id="admin-id-art">
+                <input type="hidden" id="admin-id-hist">
+                
+                <div class="admin-grupo-campo">
+                    <label>TÍTULO DEL ARTÍCULO:</label>
+                    <input type="text" id="admin-titulo" class="admin-input-control">
+                </div>
+
+                <div class="admin-grupo-campo">
+                    <label>CATEGORÍA:</label>
+                    <select id="admin-categoria" class="admin-input-control admin-select-control">
+                        <option value="Eventos">Eventos</option>
+                        <option value="Personajes">Personajes</option>
+                        <option value="Organizaciones">Organizaciones</option>
+                        <option value="Militar">Militar</option>
+                        <option value="Ubicaciones">Ubicaciones</option>
+                    </select>
+                </div>
+
+                <div class="admin-grupo-campo">
+                    <label>RESUMEN CORTO:</label>
+                    <textarea id="admin-resumen" rows="2" class="admin-input-control admin-textarea-control"></textarea>
+                </div>
+
+                <div class="admin-grupo-campo">
+                    <label>CONTENIDO COMPLETO SOP:</label>
+                    <textarea id="admin-contenido" rows="4" class="admin-input-control admin-textarea-control"></textarea>
+                </div>
+
+                <div class="admin-grupo-campo">
+                    <label class="label-feedback">FEEDBACK / MOTIVO DE REVISIÓN:</label>
+                    <input type="text" id="admin-motivo" placeholder="Ej: Registro validado mediante protocolo neural" class="admin-input-control">
+                </div>
+
+                <div class="admin-contenedor-botones">
+                    <button type="button" onclick="procesarAccionAdmin('aprobado')" class="btn-submit-mgs btn-admin-action btn-approve">APROBAR</button>
+                    <button type="button" onclick="procesarAccionAdmin('modificar')" class="btn-submit-mgs btn-admin-action btn-save">MODIFICAR CAMBIOS</button>
+                    <button type="button" onclick="procesarAccionAdmin('eliminar')" class="btn-submit-mgs btn-admin-action btn-delete">ELIMINAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="barra-controles-mgs">
+        <div id="btn-admin-volver" style="cursor: pointer;"><span class="control-btn">L1</span> VOLVER AL MENÚ</div>
+        <div>SELECT : HELP</div>
+        <div>EJECUTAR <span class="control-btn">R1</span></div>
+    </div>
+</section>
+
     <script src="./assets/js/api.js"></script>
+    <script src="./assets/js/main.js"></script>
 </body>
 </html>
